@@ -5,15 +5,15 @@ from util import to_one_hot
 class NRamContext(object):
 
     def __init__(self, batch_size: int, max_int: int, num_regs: int,
-                 num_layers: int, timesteps: int, task_type: str,  gates: list, network: list) -> None:
+                 num_hidden_layers: int, timesteps: int, task_type: str, gates: list, network: list) -> None:
         self.batch_size = batch_size
-        self.max_int    = max_int
-        self.num_regs   = num_regs
-        self.num_layers = num_layers
-        self.timesteps  = timesteps
-        self.task_type  = task_type
-        self.gates      = gates
-        self.network    = list(self.mlp_params(self.gates, network))
+        self.max_int = max_int
+        self.num_regs = num_regs
+        self.timesteps = timesteps
+        self.task_type = task_type
+        self.gates = gates
+        self.num_hidden_layers = len(network[0:len(network) - 1])
+        self.network = list(self.mlp_params(network, self.gates))
 
     def mlp_params(self, network: list, gates_list: list) -> None:
         # Layers (Not output)
@@ -26,9 +26,10 @@ class NRamContext(object):
 
         # Output layers (for every gate coefficient)
         ptr = 0
-        output_layer_weights = np.array(network[-1][0])
-        output_layer_bias = np.array(network[-1][1])
-        num_registers = output_layer_weights.shape[0]
+        output_layer = network[-1]
+        output_layer_weights = np.array(output_layer[0], dtype=np.float32)
+        output_layer_bias = np.array(output_layer[1], dtype=np.float32)
+        num_registers = self.num_regs
         for idx, g in enumerate(gates_list):
             for _ in range(g.arity):
                 yield np.array(output_layer_weights[:, ptr:ptr + num_registers], dtype=np.float32)  # Weights
@@ -55,26 +56,26 @@ class NRamContext(object):
         return regs
 
     def fuzzyfy_mem(self, M: np.array) -> np.array:
-        fuzzyfied_mems = np.array([], dtype=np.float32)
+        fuzzyfied_mems = []
         for s in M:
-            sample_fuzzyfied_mem = np.array([], dtype=np.float32)
+            sample_fuzzyfied_mem = []
             for n in s:
-                sample_fuzzyfied_mem += to_one_hot(n, M.shape[1])
-            fuzzyfied_mems += sample_fuzzyfied_mem
+                sample_fuzzyfied_mem.append(to_one_hot(n, M.shape[1]))
+            fuzzyfied_mems.append(np.stack(sample_fuzzyfied_mem, axis=0))
 
-        return fuzzyfied_mems
+        return np.stack(fuzzyfied_mems, axis=0)
 
     def task_access(self):
         """Task 1: Access the position in memory listed in the first position of the latter"""
 
         init_mem = np.random.randint(0, self.max_int, size=(self.batch_size, self.max_int), dtype=np.int32)
-        init_mem[:, 0] = self.max_int - 2
+        init_mem[:, 0] = 4
         init_mem[:, self.max_int - 1] = 0
 
         out_mem = init_mem.copy()
-        out_mem[:, 0] = out_mem[:, self.max_int - 2]
+        out_mem[:, 0] = out_mem[:, 4]
 
-        return init_mem, out_mem, np.zeros((self.num_regs, self.max_int))
+        return init_mem, out_mem
 
 
     def task_copy(self):

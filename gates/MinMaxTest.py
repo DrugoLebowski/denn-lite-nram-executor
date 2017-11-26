@@ -1,6 +1,6 @@
 import numpy as np
 
-from gates.Gate import Gate
+from gates.Gate import Gate, GateArity
 from gates.InequalityTest import InequalityTest
 
 class MinMaxTest(Gate):
@@ -12,7 +12,7 @@ class MinMaxTest(Gate):
 
 
     def module(self, M: np.array, A: np.array = None, B: np.array = None) -> (np.array, np.array):
-        Z = InequalityTest(Gate.BINARY, 0).module(M, A, B)
+        _, Z = InequalityTest(GateArity.BINARY.value, 0).module(M, A, B)
 
         if self.type is 0:
             return M, A if Z[0, 0] < Z[0, 1] else B

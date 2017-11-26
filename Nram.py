@@ -11,13 +11,21 @@ class NRam(object):
     def execute(self):
         in_mem, out_mem, regs = self.context.generate_mems()
         print("• Starting execution")
-        print("• Initial memory: ", in_mem[0, :].argmax(axis=1), ", Desired memory: ", out_mem[0])
-        for t in self.context.timesteps:
-            coeffs, _ = self.run_network(regs)
 
-            regs, in_mem = self.run_circuit(regs, in_mem, self.context.gates, coeffs)
-            print("• Modified memory timestep %d: %s" % (t, in_mem[0, :].argmax(axis=1)))
-        print("• Final memory: ", in_mem[0, :].argmax(axis=1), ", Desired memory: ", out_mem[0])
+        # Iterate over sample
+        for s in range(self.context.batch_size):
+            print("• Initial memory: %s, Desired memory: %s, Initial registers: %s"
+                  % (in_mem[0, :].argmax(axis=1), out_mem[0], regs[0, :].argmax(axis=1)))
+            for t in range(self.context.timesteps):
+                coeffs, _ = self.run_network(regs[s])
+
+                regs[s], in_mem[s] = self.run_circuit(regs[s], in_mem[s], self.context.gates, coeffs)
+                if t == self.context.timesteps - 1:
+                    print("• Final memory: %s, desired memory: %s, final registers: %s\n\n"
+                          % (in_mem[s, :].argmax(axis=1), out_mem[s],regs[s, :].argmax(axis=1)))
+                else:
+                    print("• (T = %d) Memory : %s, registers: %s"
+                          % (t, in_mem[s, :].argmax(axis=1), regs[s, :].argmax(axis=1)))
 
 
     def avg(self, regs, coeff):
@@ -37,7 +45,7 @@ class NRam(object):
         """
         args = [self.avg(gate_inputs, coefficients)
                 for coefficients in controller_coefficients]
-        output, mem = gate.module(mem, *args)
+        mem, output = gate.module(mem, *args)
 
         # Special-case constant gates.
         # Since they have no outputs, they always output
@@ -45,7 +53,7 @@ class NRam(object):
         # as necessary, effectively doing manual broadcasting
         # to generate an output of the right size.
         if gate.arity == 0:
-            output = output.repeat(gate_inputs.shape[0], axis=0)
+            output = output[None, ...]
 
         return output, mem, args
 
@@ -58,14 +66,14 @@ class NRam(object):
             output, mem, args = self.run_gate(gate_inputs, mem, gate, coeffs)
 
             # Append the output of the gate as an input for future gates.
-            gate_inputs = np.concatenate([gate_inputs, output], axis=1)
+            gate_inputs = np.concatenate([gate_inputs, output])
 
         # All leftover coefficients are for registers.
         new_registers = []
         for i, coeff in enumerate(controller_coefficients[len(gates):]):
             reg = self.avg(gate_inputs, coeff)
             new_registers.append(reg)
-        return np.stack(new_registers), mem
+        return np.stack(new_registers, axis=1)[0], mem
 
     def run_network(self, registers: np.array) -> np.array:
 
@@ -74,12 +82,12 @@ class NRam(object):
             starting index and the new starting index."""
             return values[i], values[i + 1], i + 2
 
-        # Extract 0th component from all registers.
-        last_layer = registers[:, :, 0]
+        # Extract the 0th (i.e. P( x = 0 )) component from all registers.
+        last_layer = registers[:, 0]
 
         # Propogate forward to hidden layers.
         idx = 0
-        for i in range(self.context.num_layers):
+        for i in range(self.context.num_hidden_layers):
             W, b, idx = take_params(self.context.network, idx)
             last_layer = relu(last_layer.dot(W) + b)
 
@@ -88,14 +96,14 @@ class NRam(object):
             coeffs = []
             for j in range(gate.arity):
                 W, b, idx = take_params(self.context.network, idx)
-                layer = softmax(last_layer.dot(W) + b)
-                coeffs.append(layer.eval())
+                layer = softmax(last_layer.dot(W) + b).eval()
+                coeffs.append(layer)
             controller_coefficients.append(coeffs)
 
         # Forward propogate to new register value coefficients.
-        for i in range(self.context.num_registers):
+        for i in range(self.context.num_regs):
             W, b, idx = take_params(self.context.network, idx)
-            coeffs = softmax(last_layer.dot(W) + b)
+            coeffs = softmax(last_layer.dot(W) + b).eval()
             controller_coefficients.append(coeffs)
 
         # Forward propogate to generate willingness to complete.

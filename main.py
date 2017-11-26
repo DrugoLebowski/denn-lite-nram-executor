@@ -15,13 +15,13 @@ if __name__ == "__main__":
     network = test["network"]
 
     context = NRamContext(
-        batch_size=1,
+        batch_size=2,
         max_int=10,
-        num_regs=4,
-        timesteps=9,
-        task_type="task_copy",
+        num_regs=2,
+        timesteps=3,
+        task_type="task_access",
         network=network,
-        num_layers=0,
+        num_hidden_layers=0,
         gates=[
             GateFactory.create("read"),
             GateFactory.create("zero"),
@@ -34,4 +34,4 @@ if __name__ == "__main__":
 
     nram = NRam(context)
 
-    print(nram.execute())
+    nram.execute()

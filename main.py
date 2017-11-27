@@ -36,18 +36,11 @@ if __name__ == "__main__":
     with open(args.network) as f:
         test = json.load(f)
 
-    network = test["network"]
-
-
-    context = NRamContext(
+    NRam(NRamContext(
         batch_size=args.batch_size,
         max_int=args.max_int,
         timesteps=args.timesteps,
         task_type=args.task_type,
-        network=network,
+        network=test["network"],
         gates=[ GateFactory.create(g)for g in args.gates ]
-    )
-
-    nram = NRam(context)
-
-    nram.execute()
+    )).execute()

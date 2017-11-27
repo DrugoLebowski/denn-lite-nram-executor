@@ -16,6 +16,8 @@ class NRam(object):
         for s in range(self.context.batch_size):
             print("• Initial memory: %s, Desired memory: %s, Initial registers: %s"
                   % (in_mem[0, :].argmax(axis=1), out_mem[0], regs[0, :].argmax(axis=1)))
+
+            # Iterate for every timestep
             for t in range(self.context.timesteps):
                 coeffs, _ = self.run_network(regs[s])
 
@@ -111,7 +113,3 @@ class NRam(object):
         complete = sigmoid(last_layer.dot(W) + b).eval()
 
         return controller_coefficients, complete
-
-
-    def print_memories(self):
-        pass

@@ -4,16 +4,17 @@ from util import to_one_hot
 
 class NRamContext(object):
 
-    def __init__(self, batch_size: int, max_int: int, num_regs: int,
-                 num_hidden_layers: int, timesteps: int, task_type: str, gates: list, network: list) -> None:
-        self.batch_size = batch_size
-        self.max_int = max_int
-        self.num_regs = num_regs
-        self.timesteps = timesteps
-        self.task_type = task_type
+    def __init__(self, batch_size: int, max_int: int, timesteps: int,
+                 task_type: str, gates: list, network: list) -> None:
         self.gates = gates
+        self.num_regs = len(network[0][0])
         self.num_hidden_layers = len(network[0:len(network) - 1])
         self.network = list(self.mlp_params(network, self.gates))
+
+        self.batch_size = batch_size
+        self.max_int = max_int
+        self.timesteps = timesteps
+        self.task_type = task_type
 
     def mlp_params(self, network: list, gates_list: list) -> None:
         # Layers (Not output)

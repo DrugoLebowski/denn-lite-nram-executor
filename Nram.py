@@ -23,11 +23,11 @@ class NRam(object):
 
                 regs[s], in_mem[s] = self.run_circuit(regs[s], in_mem[s], self.context.gates, coeffs)
                 if t == self.context.timesteps - 1:
-                    print("• Final memory: %s, desired memory: %s, final registers: %s\n\n"
-                          % (in_mem[s, :].argmax(axis=1), out_mem[s],regs[s, :].argmax(axis=1)))
+                    print("• (T = %d) Final memory: %s, desired memory: %s, final registers: %s\n\n"
+                          % (t + 1, in_mem[s, :].argmax(axis=1), out_mem[s],regs[s, :].argmax(axis=1)))
                 else:
                     print("• (T = %d) Memory : %s, registers: %s"
-                          % (t, in_mem[s, :].argmax(axis=1), regs[s, :].argmax(axis=1)))
+                          % (t + 1, in_mem[s, :].argmax(axis=1), regs[s, :].argmax(axis=1)))
 
 
     def avg(self, regs, coeff):
@@ -47,7 +47,7 @@ class NRam(object):
         """
         args = [self.avg(gate_inputs, coefficients)
                 for coefficients in controller_coefficients]
-        mem, output = gate.module(mem, *args)
+        mem, output = gate(mem, *args)
 
         # Special-case constant gates.
         # Since they have no outputs, they always output

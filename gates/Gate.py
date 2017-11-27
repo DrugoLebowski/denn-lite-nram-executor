@@ -17,7 +17,7 @@ class Gate(object):
         
         self.arity = arity
 
-    def module(self, M: np.array, A: np.array = None, B: np.array = None) -> (np.array, np.array):
+    def __call__(self, M: np.array, A: np.array = None, B: np.array = None) -> (np.array, np.array):
         raise NotImplementedError()
 
     def __str__(self):

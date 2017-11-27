@@ -11,8 +11,8 @@ class MinMaxTest(Gate):
         self.type = type
 
 
-    def module(self, M: np.array, A: np.array = None, B: np.array = None) -> (np.array, np.array):
-        _, Z = InequalityTest(GateArity.BINARY.value, 0).module(M, A, B)
+    def __call__(self, M: np.array, A: np.array = None, B: np.array = None) -> (np.array, np.array):
+        _, Z = InequalityTest(GateArity.BINARY.value, 0).__call__(M, A, B)
 
         if self.type is 0:
             return M, A if Z[0, 0] < Z[0, 1] else B

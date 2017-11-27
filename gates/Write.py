@@ -5,7 +5,7 @@ from gates.Gate import Gate
 
 class Write(Gate):
 
-    def module(self, M: np.array, A: np.array = None, B: np.array = None) -> (np.array, np.array):
+    def __call__(self, M: np.array, A: np.array = None, B: np.array = None) -> (np.array, np.array):
         erase   = tensordot(transpose(ones_like(A) - A, axes=[1, 0]), ones_like(A), axes=1)
         contrib = tensordot(transpose(A, axes=[1, 0]), B, axes=1)
         new_mem = (erase * M) + contrib

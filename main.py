@@ -9,38 +9,34 @@ from GateFactory import GateFactory
 if __name__ == "__main__":
     ap = ArgumentParser()
 
+
+    ap.add_argument("file", type=str,
+                    help="The file where resides the configuration of NRAM", )
     ap.add_argument("--batch_size", "-bs",
                     dest="batch_size", type=int,
-                    required=True, help="The examples to analyze", )
+                    help="The examples to analyze", )
     ap.add_argument("--timesteps", "-t",
                     dest="timesteps", type=int,
-                    required=True, help="The timesteps that the NRAM must execute", )
+                    help="The timesteps that the NRAM must execute", )
     ap.add_argument("--max_int", "-mi",
                     dest="max_int", type=int,
-                    required=True, help="The dimension of the number set", )
+                    help="The dimension of the number set", )
     ap.add_argument("--task_type", "-tt",
                     dest="task_type", type=str,
-                    required=True, help="The task to execute",
+                    help="The task to execute",
                     choices=["task_copy", "task_access"], )
-    ap.add_argument("--network", "-n",
-                    dest="network", type=str,
-                    required=True, help="The file where resides the network", )
-    ap.add_argument("--gates", "-g",
-                    dest="gates", type=str, nargs="*",
-                    required=True, help="The list of gates to use",
-                    choices=["read", "zero", "one", "two", "inc", "add", "sub",
-                             "dec", "lt", "let", "eq", "min", "max", "write"])
 
-    args = ap.parse_args()
+    args, leftovers = ap.parse_known_args()
 
-    with open(args.network) as f:
+    with open(args.file) as f:
         test = json.load(f)
+        test_args = test["arguments"]
 
     NRam(NRamContext(
-        batch_size=args.batch_size,
-        max_int=args.max_int,
-        timesteps=args.timesteps,
-        task_type=args.task_type,
+        batch_size=args.batch_size if args.batch_size is not None else 2,
+        max_int=args.max_int if args.max_int is not None else test_args["max_int"],
+        timesteps=args.timesteps if args.timesteps is not None else test_args["time_steps"],
+        task_type=args.task_type if args.task_type is not None else "task_%s" % test_args["task"],
         network=test["network"],
-        gates=[ GateFactory.create(g)for g in args.gates ]
+        gates=[ GateFactory.create(g)for g in test_args["gates"] ]
     )).execute()

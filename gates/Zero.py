@@ -1,6 +1,5 @@
 import numpy as np
 
-from numpy import tensordot
 from gates.Gate import Gate
 from util import to_one_hot
 

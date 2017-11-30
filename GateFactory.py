@@ -8,8 +8,11 @@ from gates.Inc import Inc
 from gates.Add import Add
 from gates.Sub import Sub
 from gates.Dec import Dec
-from gates.InequalityTest import InequalityTest
-from gates.MinMaxTest import MinMaxTest
+from gates.LessThan import LessThan
+from gates.LessEqualThan import LessEqualThan
+from gates.EqualThan import EqualThan
+from gates.Min import Min
+from gates.Max import Max
 from gates.Write import Write
 
 class GateFactory(metaclass=Singleton):
@@ -25,10 +28,10 @@ class GateFactory(metaclass=Singleton):
             "add":   Add(GateArity.BINARY.value),
             "sub":   Sub(GateArity.BINARY.value),
             "dec":   Dec(GateArity.UNARY.value),
-            "lt":    InequalityTest(GateArity.BINARY.value, 0),
-            "let":   InequalityTest(GateArity.BINARY.value, 1),
-            "eq":    InequalityTest(GateArity.BINARY.value, 2),
-            "min":   MinMaxTest(GateArity.BINARY.value, 0),
-            "max":   MinMaxTest(GateArity.BINARY.value, 1),
+            "lt":    LessThan(GateArity.BINARY.value),
+            "let":   LessEqualThan(GateArity.BINARY.value),
+            "eq":    EqualThan(GateArity.BINARY.value),
+            "min":   Min(GateArity.BINARY.value),
+            "max":   Max(GateArity.BINARY.value),
             "write": Write(GateArity.BINARY.value),
         }[cls]

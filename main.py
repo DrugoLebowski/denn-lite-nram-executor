@@ -1,7 +1,8 @@
+# Standard
 import json
-
 from argparse import ArgumentParser
 
+# Project
 from Nram import NRam
 from NRamContext import NRamContext
 from GateFactory import GateFactory
@@ -38,5 +39,5 @@ if __name__ == "__main__":
         timesteps=args.timesteps if args.timesteps is not None else test_args["time_steps"],
         task_type=args.task_type if args.task_type is not None else "task_%s" % test_args["task"],
         network=test["network"],
-        gates=[ GateFactory.create(g)for g in test_args["gates"] ]
+        gates=[ GateFactory.create(g) for g in test_args["gates"] ]
     )).execute()

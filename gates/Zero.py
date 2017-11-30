@@ -1,7 +1,10 @@
+# Vendor
 import numpy as np
 
-from gates.Gate import Gate
+# Project
 from util import to_one_hot
+from gates.Gate import Gate
+
 
 class Zero(Gate):
 

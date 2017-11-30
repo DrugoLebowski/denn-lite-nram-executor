@@ -1,5 +1,7 @@
+# Vendor
 import numpy as np
 
+# Project
 from util import to_one_hot
 
 class NRamContext(object):
@@ -15,6 +17,9 @@ class NRamContext(object):
         self.max_int = max_int
         self.timesteps = timesteps
         self.task_type = task_type
+
+        # Every entry is a sample
+        self.debug = dict()
 
     def mlp_params(self, network: list, gates_list: list) -> list:
         # Layers (Not output)

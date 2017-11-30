@@ -1,6 +1,8 @@
+# Vendor
 import numpy as np
-
 from numpy import roll
+
+# Project
 from gates.Gate import Gate
 
 

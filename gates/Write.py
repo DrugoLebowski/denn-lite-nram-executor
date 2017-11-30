@@ -1,7 +1,10 @@
+# Vendor
 import numpy as np
-
 from numpy import tensordot, transpose, zeros_like, ones_like
+
+# Project
 from gates.Gate import Gate
+
 
 class Write(Gate):
 

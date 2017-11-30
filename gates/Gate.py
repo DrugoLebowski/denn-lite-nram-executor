@@ -1,6 +1,9 @@
+# Standard
+from enum import Enum
+
+# Vendor
 import numpy as np
 
-from enum import Enum
 
 class GateArity(Enum):
 

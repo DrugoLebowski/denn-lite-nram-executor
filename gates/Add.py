@@ -1,7 +1,10 @@
+# Vendor
 import numpy as np
-
 from numpy import tensordot, roll, transpose, stack
+
+# Project
 from gates.Gate import Gate
+
 
 class Add(Gate):
 

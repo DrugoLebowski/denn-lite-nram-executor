@@ -1,7 +1,10 @@
+# Vendor
 import numpy as np
-
 from numpy import tensordot
+
+# Project
 from gates.Gate import Gate
+
 
 class Read(Gate):
 

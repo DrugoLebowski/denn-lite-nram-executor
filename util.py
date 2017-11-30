@@ -1,3 +1,4 @@
+# Vendor
 import numpy as np
 
 def to_one_hot(val: int, size: int) -> np.array:

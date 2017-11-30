@@ -1,5 +1,7 @@
+# Vendor
 import numpy as np
 
+# Project
 from gates.Gate import Gate, GateArity
 from gates.LessThan import LessThan
 

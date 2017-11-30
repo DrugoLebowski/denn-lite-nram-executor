@@ -1,7 +1,11 @@
+# Vendor
 import numpy as np
-import NRamContext
-
 from theano.tensor.nnet import relu, softmax, sigmoid
+
+# Project
+import NRamContext
+from DebugTimestep import DebugTimestep
+
 
 class NRam(object):
 
@@ -14,21 +18,21 @@ class NRam(object):
 
         # Iterate over sample
         for s in range(self.context.batch_size):
-            print("• Initial memory: %s, Desired memory: %s, Initial registers: %s"
-                  % (in_mem[s, :].argmax(axis=1), out_mem[s], regs[s, :].argmax(axis=1)))
+            print("\nSample[%d], Initial memory: %s, Desired memory: %s, Initial registers: %s"
+                  % (s, in_mem[s, :].argmax(axis=1), out_mem[s], regs[s, :].argmax(axis=1)))
 
             # Iterate for every timestep
+            self.context.debug[str(s)] = list() # Init debug dictionary for the sample
             for t in range(self.context.timesteps):
                 coeffs, _ = self.run_network(regs[s])
 
-                regs[s], in_mem[s] = self.run_circuit(regs[s], in_mem[s], self.context.gates, coeffs)
-                if t == self.context.timesteps - 1:
-                    print("• (T = %d) Final memory: %s, desired memory: %s, final registers: %s\n\n"
-                          % (t + 1, in_mem[s, :].argmax(axis=1), out_mem[s],regs[s, :].argmax(axis=1)))
-                else:
-                    print("• (T = %d) Memory : %s, registers: %s"
-                          % (t + 1, in_mem[s, :].argmax(axis=1), regs[s, :].argmax(axis=1)))
+                dt = DebugTimestep(self.context, t)
+                regs[s], in_mem[s] = self.run_circuit(regs[s], in_mem[s], self.context.gates, coeffs, dt)
+                self.context.debug[str(s)].append(dt)
 
+            # Debug for the sample
+            for dt in self.context.debug[str(s)]:
+                print(dt)
 
     def avg(self, regs, coeff):
         return np.array(
@@ -63,23 +67,36 @@ class NRam(object):
 
         return output, mem, args
 
-    def run_circuit(self, registers, mem, gates, controller_coefficients):
+    def run_circuit(self, registers: np.array, mem: np.array, gates: np.array, controller_coefficients: np.array,
+                    debug: DebugTimestep) -> np.array:
         # Initially, only the registers may be used as inputs.
         gate_inputs = registers
+
+        # Debug purpose, dictionary for gates and regs history
+        debug_step_gates = dict()
+        debug_step_regs  = dict()
 
         # Run through all the gates.
         for i, (gate, coeffs) in enumerate(zip(gates, controller_coefficients)):
             output, mem, args = self.run_gate(gate_inputs, mem, gate, coeffs)
 
+            gate_info = dict()
+            for i in range(gate.arity):
+                gate_info[str(i)] = [coeffs[i].argmax(), args[i].argmax()]
+            gate_info["res"] = output.argmax()
+            debug_step_gates[gate.__str__()] = gate_info
+
             # Append the output of the gate as an input for future gates.
             gate_inputs = np.concatenate([gate_inputs, output])
+        debug.gates = debug_step_gates
+        debug.mem = mem.argmax(axis=1)
 
         # All leftover coefficients are for registers.
-        print(gate_inputs[np.arange(self.context.num_regs)])
         for i, coeff in enumerate(controller_coefficients[len(gates):]):
             gate_inputs[i] = self.avg(gate_inputs, coeff)
+            debug_step_regs[str(i)] = [coeff.argmax(), gate_inputs[i].argmax()]
+        debug.regs = debug_step_regs
 
-        print(gate_inputs[np.arange(self.context.num_regs)])
         return gate_inputs[np.arange(self.context.num_regs)], mem
 
     def run_network(self, registers: np.array) -> np.array:

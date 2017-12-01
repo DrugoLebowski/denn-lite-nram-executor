@@ -3,8 +3,9 @@ import numpy as np
 from theano.tensor.nnet import relu, softmax, sigmoid
 
 # Project
-import NRamContext
+from NRamContext import NRamContext
 from DebugTimestep import DebugTimestep
+from util import print_memories
 
 
 class NRam(object):
@@ -12,8 +13,8 @@ class NRam(object):
     def __init__(self, context: NRamContext) -> None:
         self.context = context
 
-    def execute(self):
-        in_mem, out_mem, regs = self.context.generate_mems()
+    def execute(self) -> None:
+        in_mem, out_mem, regs = self.context.task()
         print("• Starting execution")
 
         # Iterate over sample
@@ -22,19 +23,31 @@ class NRam(object):
                   % (s, in_mem[s, :].argmax(axis=1), out_mem[s], regs[s, :].argmax(axis=1)))
 
             # Iterate for every timestep
-            self.context.debug[str(s)] = list() # Init debug dictionary for the sample
+            self.context.debug.append(list()) # Init debug dictionary for the sample
             for t in range(self.context.timesteps):
                 coeffs, _ = self.run_network(regs[s])
 
-                dt = DebugTimestep(self.context, t)
+                dt = DebugTimestep(self.context, t, s)
                 regs[s], in_mem[s] = self.run_circuit(regs[s], in_mem[s], self.context.gates, coeffs, dt)
-                self.context.debug[str(s)].append(dt)
+                self.context.debug[s].append(dt)
 
             # Debug for the sample
-            for dt in self.context.debug[str(s)]:
-                print(dt)
+            if self.context.debug_is_active:
+                for dt in self.context.debug[s]:
+                    print(dt)
+            else:
+                print("\t\t   Final memory: %s" % (in_mem[s, :].argmax(axis=1)))
 
-    def avg(self, regs, coeff):
+            if self.context.print_circuits_filename is not None:
+                for dt in self.context.debug[s]:
+                    dt.print_circuit()
+
+        if self.context.print_memories_filename is not None:
+            print_memories(self.context, in_mem, out_mem)
+
+    def avg(self, regs: np.array, coeff: np.array) -> np.array:
+        """ Make the product between (registers + output of the gates)
+            and a coefficient for the value selection """
         return np.array(
             np.tensordot(
                 regs.transpose([1, 0]), coeff.transpose([1, 0]), axes=1
@@ -67,8 +80,8 @@ class NRam(object):
 
         return output, mem, args
 
-    def run_circuit(self, registers: np.array, mem: np.array, gates: np.array, controller_coefficients: np.array,
-                    debug: DebugTimestep) -> np.array:
+    def run_circuit(self, registers: np.array, mem: np.array, gates: np.array,
+                    controller_coefficients: np.array, debug: DebugTimestep) -> np.array:
         # Initially, only the registers may be used as inputs.
         gate_inputs = registers
 

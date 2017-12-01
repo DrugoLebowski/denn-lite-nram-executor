@@ -1,11 +1,12 @@
 # Vendor
-import numpy as np
 import matplotlib.pyplot as plt
-from networkx import DiGraph, draw_networkx, isolates
+import numpy as np
+import pygraphviz as pgv
 
 # Project
 from App import App
 from NRamContext import NRamContext
+from factories.TaskFactory import TaskFactory
 from util import exists_or_create
 
 class DebugTimestep(object):
@@ -57,26 +58,29 @@ class DebugTimestep(object):
         path = "%s/%s" % (task_path, self.sample)
         exists_or_create(path)
 
-        G = DiGraph()
+        G = pgv.AGraph(directed=True, name="%s - Timestep %s" % (self.context.task.__str__(), self.timestep))
+        G.graph_attr["rankdir"] = "RL"
         for r in range(context.num_regs):
             G.add_node("R%s" % str(r))
 
         for g in context.gates:
-            G.add_node(g.__str__())
+            G.add_node(g.__str__(), shape="rectangle")
+            G.get_node(g.__str__()).attr["style"] = "bold"
             for a in range(g.arity):
-                coeff = self.gates[g.__str__()][str(a)][0]
-                G.add_edge(retrieve_gates_or_register(coeff), g.__str__())
+                coeff = retrieve_gates_or_register(self.gates[g.__str__()][str(a)][0])
+                G.add_edge(coeff, g.__str__())
 
         for r in range(context.num_regs):
             G.add_node("R'%s" % str(r))
             G.add_edge(retrieve_gates_or_register(self.regs[str(r)][0]), "R'%s" % str(r))
 
         # Removes the unattached register not modified and gates not attached to other objects (gates/register)
-        G.remove_nodes_from(list(isolates(G)))
+        for node in G.nodes_iter():
+            if len(list(G.neighbors(node))) == 0:
+                G.remove_node(node.name)
 
-        draw_networkx(G)
-        plt.savefig("%s/%s.%s.png" % (path, context.print_circuits_filename[0], self.timestep), format="PNG")
-        plt.close()  # Flush
+        G.layout(prog="twopi")
+        G.draw("%s/%s.%s.png" % (path, context.print_circuits_filename[0], self.timestep), format="png")
 
         return True
 
@@ -86,8 +90,8 @@ class DebugTimestep(object):
             if idx in range(self.context.num_regs):  # Is a register
                 return "R%d: %d" % (idx, value) if type is 0 else "R%d" % (idx)
             else:  # Otherwise is a gate
-                return "%s: %d" % (self.context.gates[idx - len(self.context.gates)].__str__(), value) if type is 0 \
-                    else "%s" % (self.context.gates[idx - len(self.context.gates)].__str__())
+                return "%s: %d" % (self.context.gates[idx - self.context.num_regs].__str__(), value) if type is 0 \
+                    else "%s" % (self.context.gates[idx - self.context.num_regs].__str__())
 
         output = "Timestep %d\n" % (self.timestep)
         for g in self.context.gates:

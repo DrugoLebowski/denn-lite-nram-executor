@@ -1,13 +1,10 @@
 # Vendor
-import matplotlib.pyplot as plt
 import numpy as np
 import pygraphviz as pgv
 
 # Project
-from App import App
 from NRamContext import NRamContext
-from factories.TaskFactory import TaskFactory
-from util import exists_or_create
+
 
 class DebugTimestep(object):
     def __init__(self, context: NRamContext, timestep: int, sample: int) -> None:
@@ -42,7 +39,7 @@ class DebugTimestep(object):
     def mem(self, mem: dict) -> None:
         self._mem = mem
 
-    def print_circuit(self) -> bool:
+    def print_circuit(self, path: str) -> bool:
         """ Print the circuit for the samples """
         context = self.context
 
@@ -52,16 +49,11 @@ class DebugTimestep(object):
             else:
                 return context.gates[idx - context.num_regs].__str__()
 
-        task_path = "%s%s" % (App.get("images_path"),
-                                context.task.__str__())
-        exists_or_create(task_path)
-        path = "%s/%s" % (task_path, self.sample)
-        exists_or_create(path)
-
-        G = pgv.AGraph(directed=True, name="%s - Timestep %s" % (self.context.task.__str__(), self.timestep))
-        G.graph_attr["rankdir"] = "RL"
+        G = pgv.AGraph(directed=True, strict=False, name="%s - Timestep %s" % (self.context.task.__str__(), self.timestep))
+        G.graph_attr["rankdir"] = "LR"
         for r in range(context.num_regs):
-            G.add_node("R%s" % str(r))
+            node_name = "R%s" % str(r)
+            G.add_node(node_name, shape="circle")
 
         for g in context.gates:
             G.add_node(g.__str__(), shape="rectangle")
@@ -69,18 +61,24 @@ class DebugTimestep(object):
             for a in range(g.arity):
                 coeff = retrieve_gates_or_register(self.gates[g.__str__()][str(a)][0])
                 G.add_edge(coeff, g.__str__())
+                if g.__str__() is "Write":
+                    G.get_edge(coeff, g.__str__()).attr["label"] = "ptr" if a is 0 else "val"
+                elif g.__str__() in ["LessThan", "LessThanEqual", "EqualThan", "Min", "Max"]:
+                    G.get_edge(coeff, g.__str__()).attr["label"] = "x" if a is 0 else "y"
 
         for r in range(context.num_regs):
+            node_name = "R'%s" % str(r)
             G.add_node("R'%s" % str(r))
-            G.add_edge(retrieve_gates_or_register(self.regs[str(r)][0]), "R'%s" % str(r))
+            G.add_node(node_name, shape="circle")
+            G.add_edge(retrieve_gates_or_register(self.regs[str(r)][0]), node_name)
 
         # Removes the unattached register not modified and gates not attached to other objects (gates/register)
         for node in G.nodes_iter():
             if len(list(G.neighbors(node))) == 0:
                 G.remove_node(node.name)
 
-        G.layout(prog="twopi")
-        G.draw("%s/%s.%s.png" % (path, context.print_circuits_filename[0], self.timestep), format="png")
+        G.layout(prog="dot")
+        G.draw("%s/circuit.%s.png" % (path, self.timestep), format="png")
 
         return True
 

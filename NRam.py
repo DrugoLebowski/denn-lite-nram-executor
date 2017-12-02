@@ -1,3 +1,6 @@
+# Standard
+import shutil
+
 # Vendor
 import numpy as np
 from theano.tensor.nnet import relu, softmax, sigmoid
@@ -5,7 +8,7 @@ from theano.tensor.nnet import relu, softmax, sigmoid
 # Project
 from NRamContext import NRamContext
 from DebugTimestep import DebugTimestep
-from util import print_memories
+from util import print_memories, create_test_dir, create_sample_dir
 
 
 class NRam(object):
@@ -17,10 +20,17 @@ class NRam(object):
         in_mem, out_mem, regs = self.context.task()
         print("• Starting execution")
 
+        # Create a directory for the sample
+        path = create_test_dir(self.context)
+        shutil.copyfile(self.context.path_config_file, "%s/config.json" % path)
+
         # Iterate over sample
         for s in range(self.context.batch_size):
             print("\nSample[%d], Initial memory: %s, Desired memory: %s, Initial registers: %s"
                   % (s, in_mem[s, :].argmax(axis=1), out_mem[s], regs[s, :].argmax(axis=1)))
+
+            # Create dir for the single example
+            sample_dir = create_sample_dir(path, s)
 
             # Iterate for every timestep
             self.context.debug.append(list()) # Init debug dictionary for the sample
@@ -38,12 +48,12 @@ class NRam(object):
             else:
                 print("\t\t   Final memory: %s" % (in_mem[s, :].argmax(axis=1)))
 
-            if self.context.print_circuits_filename is not None:
+            if self.context.print_circuits:
                 for dt in self.context.debug[s]:
-                    dt.print_circuit()
+                    dt.print_circuit(sample_dir)
 
-        if self.context.print_memories_filename is not None:
-            print_memories(self.context, in_mem, out_mem)
+        if self.context.print_memories:
+            print_memories(self.context, in_mem, out_mem, path)
 
     def avg(self, regs: np.array, coeff: np.array) -> np.array:
         """ Make the product between (registers + output of the gates)

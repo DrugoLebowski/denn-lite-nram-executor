@@ -8,7 +8,8 @@ from factories.TaskFactory import TaskFactory
 class NRamContext(object):
     def __init__(self, batch_size: int, max_int: int, timesteps: int,
                  task_type: str, gates: list, network: list, debug_is_active: bool,
-                 print_circuits_filename: str, print_memories_filename: str) -> None:
+                 print_circuits: str, print_memories: str,
+                 path_config_file: str, ) -> None:
         self.gates = gates
         self.num_regs = len(network[0][0])
         self.num_hidden_layers = len(network[0:len(network) - 1])
@@ -24,10 +25,12 @@ class NRamContext(object):
         self.debug_is_active = debug_is_active
 
         # If None then the circuits will be not draw
-        self.print_circuits_filename = print_circuits_filename
+        self.print_circuits = print_circuits
 
         # Like above, but with memories
-        self.print_memories_filename = print_memories_filename
+        self.print_memories = print_memories
+
+        self.path_config_file = path_config_file
 
     def mlp_params(self, network: list, gates_list: list) -> list:
         # Layers (Not output)

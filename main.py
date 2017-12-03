@@ -27,10 +27,6 @@ if __name__ == "__main__":
     ap.add_argument("--max_int", "-mi",
                     dest="max_int", type=int,
                     help="The dimension of the number set", )
-    ap.add_argument("--task_type", "-tt",
-                    dest="task_type", type=str,
-                    help="The task to execute",
-                    choices=["task_copy", "task_access"], )
     ap.add_argument("--debug", "-d",
                     dest="debug", nargs="?", const=True, default=False,
                     help="Write out the debug of NRAM", )
@@ -51,7 +47,7 @@ if __name__ == "__main__":
         batch_size=args.batch_size if args.batch_size is not None else 2,
         max_int=args.max_int if args.max_int is not None else test_args["max_int"],
         timesteps=args.timesteps if args.timesteps is not None else test_args["time_steps"],
-        task_type=args.task_type if args.task_type is not None else "task_%s" % test_args["task"],
+        task_type="task_%s" % test_args["task"],
         network=test["network"],
         gates=[ GateFactory.create(g) for g in test_args["gates"] ],
         debug_is_active=args.debug,

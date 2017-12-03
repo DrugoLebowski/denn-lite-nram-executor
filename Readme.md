@@ -62,7 +62,7 @@ $ python main.py tests/example.py -mi 10
 ```
 
 #### --print_circuits
-Activate the saving to a image file of the timestep's circuit for every sample.
+Activate the saving to an image file of the timestep's circuit for every sample.
 ```sh
 $ python main.py tests/example.py --print_circuits
 
@@ -72,7 +72,7 @@ $ python main.py tests/example.py -pc
 ```
 
 #### --print_memories
-Activate the saving to a image file of the memory status at the end of computation.
+Activate the saving to an image file of the memory status at the end of computation.
 ```sh
 $ python main.py tests/example.py --print_memories
 

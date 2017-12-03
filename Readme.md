@@ -23,11 +23,11 @@ $ pip install -r requirements.txt
 
 Usage
 -----
-To test with activated debug:
+To test a configuration:
 
     $ python main.py tests/test_copy_working_best.json
 
-To recall the help
+To recall the help:
 
     $ python main.py -h
 

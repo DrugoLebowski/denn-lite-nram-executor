@@ -16,6 +16,10 @@ Prerequisites
 - Theano 0.9.0
 - matplotlib 2.1
 - pygraphviz 1.3.1
+#### Install requirements 
+```sh
+$ pip install -r requirements.txt
+```
 
 Usage
 -----

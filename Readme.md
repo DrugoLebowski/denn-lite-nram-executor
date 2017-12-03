@@ -34,49 +34,49 @@ Activate the command line printing of every execution timestep, with all
 the information about the gates and registers (like coefficients and values).
 
 ```sh
-    $ python main.py tests/example.json --debug
+$ python main.py tests/example.json --debug
 
-    OR
+OR
 
-    $ python main.py tests/example.json -d
+$ python main.py tests/example.json -d
 ```
 
 #### --timesteps N
 Modify the running timesteps of NRAM.
 ```sh
-    $python main.py tests/example.py --timesteps 10
+$ python main.py tests/example.py --timesteps 10
 
-    OR
+OR
 
-    $python main.py tests/example.py -t 10
+$ python main.py tests/example.py -t 10
 ```
 
 #### --max_int N
 The set of integers which the NRAM use.
 ```sh
-    $python main.py tests/example.py --max_int 10
+$ python main.py tests/example.py --max_int 10
 
-    OR
+OR
 
-    $python main.py tests/example.py -mi 10
+$ python main.py tests/example.py -mi 10
 ```
 
 #### --print_circuits
 Activate the saving to a image file of the timestep's circuit for every sample.
 ```sh
-    $python main.py tests/example.py --print_circuits
+$ python main.py tests/example.py --print_circuits
 
-    OR
+OR
 
-    $python main.py tests/example.py -pc
+$ python main.py tests/example.py -pc
 ```
 
 #### --print_memories
 Activate the saving to a image file of the memory status at the end of computation.
 ```sh
-    $python main.py tests/example.py --print_memories
+$ python main.py tests/example.py --print_memories
 
-    OR
+OR
 
-    $python main.py tests/example.py -pm
+$ python main.py tests/example.py -pm
 ```

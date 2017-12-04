@@ -12,7 +12,7 @@ Anyway almost all the NRAM aspects are implemented, the only things missing out 
 Prerequisites
 -------------
 - Python 3.5+
-- NumPy 1.13.1
+- NumPy 1.13.3
 - Theano 0.9.0
 - matplotlib 2.1
 - pygraphviz 1.3.1

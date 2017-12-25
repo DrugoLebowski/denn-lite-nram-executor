@@ -6,6 +6,7 @@ from tasks.TaskAccess import TaskAccess
 from tasks.TaskIncrement import TaskIncrement
 from tasks.TaskSwap import TaskSwap
 from tasks.TaskReverse import TaskReverse
+from tasks.TaskPermutation import TaskPermutation
 
 class TaskFactory(metaclass=Singleton):
 
@@ -17,4 +18,5 @@ class TaskFactory(metaclass=Singleton):
             "task_increment": TaskIncrement(batch_size, max_int, num_regs, timestep),
             "task_swap": TaskSwap(batch_size, max_int, num_regs, timestep),
             "task_reverse": TaskReverse(batch_size, max_int, num_regs, timestep),
+            "task_permutation": TaskPermutation(batch_size, max_int, num_regs, timestep),
         }[name]

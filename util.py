@@ -10,21 +10,17 @@ import numpy as np
 from App import App
 
 
-def to_one_hot(val: int, size: int) -> np.array:
-    b = np.zeros((size), dtype=np.float32)
-    b[val] = 1.0
+def to_one_hot(val: np.ndarray) -> np.ndarray:
+    b = np.zeros((val.shape[0], val.shape[0]), dtype=np.int32)
+    b[np.arange(val.shape[0]), val] = 1
     return b
 
 
-def fuzzyfy_mem(M: np.array) -> np.array:
+def fuzzyfy_mem(M: np.array) -> np.ndarray:
     """ Make the fuzzy version of a list of integer memories """
     fuzzyfied_mems = []
     for s in M:
-        sample_fuzzyfied_mem = []
-        for n in s:
-            sample_fuzzyfied_mem.append(to_one_hot(n, M.shape[1]))
-        fuzzyfied_mems.append(np.stack(sample_fuzzyfied_mem, axis=0))
-
+        fuzzyfied_mems.append(to_one_hot(s))
     return np.stack(fuzzyfied_mems, axis=0)
 
 

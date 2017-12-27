@@ -5,6 +5,11 @@ import numpy as np
 from tasks.Task import Task
 
 class TaskReverse(Task):
+    """ [Reverse]
+    Given an array and a pointer to the destination, copy all elements from the array
+	in reversed order. Input is given as p, A[0], ..., A[n − 1] where p points one element after
+    A[n−1]. The expected output is A[n−1], ..., A[0] at positions p, ..., p+n−1 respectively.
+    """
 
     def create(self) -> (np.array, np.array):
         starting_point = np.floor(self.max_int / 2).__int__() \

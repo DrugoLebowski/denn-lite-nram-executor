@@ -5,7 +5,10 @@ import numpy as np
 from tasks.Task import Task
 
 class TaskAccess(Task):
-    """ Access the position in memory listed in the first position of the latter """
+    """ [Access]
+    Given a value k and an array A, return A[k]. Input is given as k, A[0], .., A[n - 1], NULL
+    and the network should replace the first memory cell with A[k].
+    """
 
     def create(self) -> (np.array, np.array):
         init_mem = np.random.randint(0, self.max_int, size=(self.batch_size, self.max_int), dtype=np.int32)

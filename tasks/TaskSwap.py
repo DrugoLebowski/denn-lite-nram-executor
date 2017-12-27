@@ -5,7 +5,11 @@ import numpy as np
 from tasks.Task import Task
 
 class TaskSwap(Task):
-    """ Swap the values listed in the first two position of the memory """
+    """ [Swap]
+    Given two pointers p, q and an array A, swap elements A[p] and A[q]. Input is
+    given as p, q, A[0], .., A[p], ..., A[q], ..., A[n − 1], 0. The expected modified array A is:
+    A[0], ..., A[q], ..., A[p], ..., A[n − 1].
+    """
 
     def create(self) -> (np.array, np.array):
         idx_1 = np.random.randint(2, self.max_int - 3, size=(self.batch_size), dtype=np.int32)

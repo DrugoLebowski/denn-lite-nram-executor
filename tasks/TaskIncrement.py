@@ -6,6 +6,10 @@ from tasks.Task import Task
 
 
 class TaskIncrement(Task):
+    """ [Increment]
+    Given an array A, increment all its elements by 1. Input is given as
+    A[0], ..., A[n − 1], NULL and the expected output is A[0] + 1, ..., A[n − 1] + 1.
+    """
 
     def create(self):
         """Task 5: Increment"""

@@ -5,6 +5,11 @@ import numpy as np
 from tasks.Task import Task
 
 class TaskCopy(Task):
+    """ [Copy]
+    Given an array and a pointer to the destination, copy all elements from the array to
+    the given location. Input is given as p, A[0], ..., A[n−1] where p points to one element after
+    A[n−1]. The expected output is A[0], ..., A[n−1] at positions p, ..., p+n−1 respectively.
+    """
 
     def create(self) -> (np.array, np.array):
         starting_point = np.floor(self.max_int / 2).__int__() \

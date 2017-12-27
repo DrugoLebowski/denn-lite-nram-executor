@@ -6,12 +6,12 @@ from tasks.Task import Task
 
 class TaskListK(Task):
     """ [ListK]
-        Given a pointer to the head of a linked list and a number k, find the value of the
-        k-th element on the list. List nodes are represented as two adjacent memory cells: a pointer
-        to the next node and a value. Elements are in random locations in the memory, so that
-        the network needs to follow the pointers to find the correct element. Input is given as:
-        head, k, out, ... where head is a pointer to the first node on the list, k indicates how many
-        hops are needed and out is a cell where the output should be put.
+    Given a pointer to the head of a linked list and a number k, find the value of the
+    k-th element on the list. List nodes are represented as two adjacent memory cells: a pointer
+    to the next node and a value. Elements are in random locations in the memory, so that
+    the network needs to follow the pointers to find the correct element. Input is given as:
+    head, k, out, ... where head is a pointer to the first node on the list, k indicates how many
+    hops are needed and out is a cell where the output should be put.
     """
 
     def create(self) -> (np.ndarray, np.ndarray):
@@ -21,6 +21,7 @@ class TaskListK(Task):
         lists_elements_permutations = np.stack([np.random.permutation(list_size) for _ in range(self.batch_size)], axis=0)
         init_mem = np.zeros((self.batch_size, self.max_int), dtype=np.int32)
 
+        # Create for each example the list
         for example in range(self.batch_size):
             for j, permidx in enumerate(lists_elements_permutations[example]):
                 next_element_pointer = np.where(lists_elements_permutations[example] == permidx + 1)[0]

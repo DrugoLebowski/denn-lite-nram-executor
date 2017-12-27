@@ -8,6 +8,7 @@ from tasks.TaskSwap import TaskSwap
 from tasks.TaskReverse import TaskReverse
 from tasks.TaskPermutation import TaskPermutation
 from tasks.TaskListK import TaskListK
+from tasks.TaskListSearch import TaskListSearch
 
 class TaskFactory(metaclass=Singleton):
 
@@ -20,5 +21,6 @@ class TaskFactory(metaclass=Singleton):
             "task_swap": TaskSwap(batch_size, max_int, num_regs, timestep),
             "task_reverse": TaskReverse(batch_size, max_int, num_regs, timestep),
             "task_permutation": TaskPermutation(batch_size, max_int, num_regs, timestep),
-            "task_listk": TaskListK(batch_size, max_int, num_regs, timestep),
+            "task_list_k": TaskListK(batch_size, max_int, num_regs, timestep),
+            "task_list_search": TaskListSearch(batch_size, max_int, num_regs, timestep),
         }[name]

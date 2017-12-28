@@ -10,6 +10,7 @@ from tasks.TaskPermutation import TaskPermutation
 from tasks.TaskListK import TaskListK
 from tasks.TaskListSearch import TaskListSearch
 from tasks.TaskMerge import TaskMerge
+from tasks.TaskWalkBST import TaskWalkBST
 from tasks.TaskSum import TaskSum
 from tasks.TaskProduct import TaskProduct
 
@@ -27,6 +28,7 @@ class TaskFactory(metaclass=Singleton):
             "task_list_k": TaskListK(batch_size, max_int, num_regs, timestep),
             "task_list_search": TaskListSearch(batch_size, max_int, num_regs, timestep),
             "task_merge": TaskMerge(batch_size, max_int, num_regs, timestep),
+            "task_walkbst": TaskWalkBST(batch_size, max_int, num_regs, timestep),
             "task_sum": TaskSum(batch_size, max_int, num_regs, timestep),
             "task_product": TaskProduct(batch_size, max_int, num_regs, timestep),
         }[name]

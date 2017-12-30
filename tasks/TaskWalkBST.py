@@ -24,13 +24,13 @@ class TaskWalkBST(Task):
         def insert_in_bst(bst: np.ndarray, pointer: int, element: int, element_pointer_in_memory: int) -> np.ndarray:
             """ Insert an element in the BST. """
             if bst[pointer] > element:
-                if bst[pointer + 1] == 0:
+                if bst[pointer + 1] == -1:
                     bst[pointer + 1] = element_pointer_in_memory
                     return bst
                 else:
                     return insert_in_bst(bst, int(bst[pointer + 1]), element, element_pointer_in_memory)
             else:
-                if bst[pointer + 2] == 0:
+                if bst[pointer + 2] == -1:
                     bst[pointer + 2] = element_pointer_in_memory
                     return bst
                 else:
@@ -38,7 +38,7 @@ class TaskWalkBST(Task):
 
         def walk_bst(bst: np.ndarray, walk: np.ndarray, previous_pointer: int, pointer: int):
             """ Walk, set a walk sequence, the bst and return the last element encountered. """
-            if pointer == 0 and previous_pointer != -1:
+            if pointer == -1:
                 return bst[previous_pointer]
             elif len(walk) == 0:
                 return bst[pointer]
@@ -52,6 +52,7 @@ class TaskWalkBST(Task):
         remaining_size = self.max_int - 3
         num_elements = int(remaining_size / 4)
         offset = 2
+        divider_pointer = offset + num_elements
         init_mem = np.zeros((self.batch_size, self.max_int), dtype=np.int32)
         out_mem = np.zeros((self.batch_size, self.max_int), dtype=np.int32)
 
@@ -67,7 +68,7 @@ class TaskWalkBST(Task):
 
         for e in range(self.batch_size):
             # Create a temporary vector that contains a BST for an example
-            example_bst = np.zeros(num_elements * 3)
+            example_bst = np.ones(num_elements * 3, dtype=np.int32) * -1
             root_pointer = -1
             for i in range(num_elements):
                 pointer = get_element_index(orders_in_memory[e], i)
@@ -76,23 +77,26 @@ class TaskWalkBST(Task):
                     root_pointer = pointer * 3
 
             # Initialize BST
-            for i in range(num_elements):
-                example_bst = insert_in_bst(example_bst, root_pointer, list_elements[e, i], \
+            for i in range(1, num_elements):
+                example_bst = insert_in_bst(example_bst, root_pointer, list_elements[e, i],
                                             get_element_index(orders_in_memory[e], i) * 3)
 
             # Fill the memories
-            init_mem[e, 0] = offset + num_elements + root_pointer
-            init_mem[e, offset:(offset + num_elements)] = walks_bst[e]
+            init_mem[e, 0] = divider_pointer + 1 + root_pointer
+            init_mem[e, offset:divider_pointer] = walks_bst[e]
 
             # Walk the bst before the normalization
             value_found = walk_bst(example_bst, walks_bst[e], -1, root_pointer)
 
             # Normalize bst pointers for the memory and then save it
             for idx in range(example_bst.size):
-                if idx % 3 != 0 and example_bst[idx] != 0:
-                    example_bst[idx] += offset + num_elements
+                if idx % 3 != 0:
+                    if example_bst[idx] != -1:
+                        example_bst[idx] += divider_pointer + 1
+                    else:
+                        example_bst[idx] = 0
 
-            init_mem[e, (offset + num_elements):(offset + (4 * num_elements))] = example_bst
+            init_mem[e, (divider_pointer + 1):(divider_pointer + 1 + (3 * num_elements))] = example_bst
 
             out_mem[e] = init_mem[e]
             out_mem[e, 1] = value_found

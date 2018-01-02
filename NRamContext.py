@@ -33,12 +33,11 @@ class NRamContext(object):
         self.path_config_file = path_config_file
 
     def mlp_params(self, network: list, gates_list: list) -> list:
-        # Layers (Not output)
+        # Hidden layers (Not output)
         layers = []
-        for idx, l in enumerate(network):
-            if idx < len(network) - 1:
-                layers.append(np.array(l[0], dtype=np.float32))  # Weights
-                layers.append(np.array(l[1], dtype=np.float32))  # Bias
+        for idx, l in enumerate(network[:-1]):
+            layers.append(np.array(l[0], dtype=np.float32))  # Weights
+            layers.append(np.array(l[1], dtype=np.float32))  # Bias
 
         # Output layers (for every gate coefficient)
         ptr = 0
@@ -54,7 +53,7 @@ class NRamContext(object):
             num_registers += 1
 
         # Output layers (for every register coefficient)
-        for r in range(output_layer_weights.shape[0]):
+        for r in range(self.num_regs):
             layers.append(output_layer_weights[:, ptr:ptr + num_registers])  # Weights
             layers.append(output_layer_bias[:, ptr:ptr + num_registers])  # Bias
             ptr += num_registers

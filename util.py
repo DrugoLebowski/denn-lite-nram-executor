@@ -10,10 +10,19 @@ import numpy as np
 from App import App
 
 
-def to_one_hot(val: np.ndarray) -> np.ndarray:
-    b = np.zeros((val.shape[0], val.shape[0]), dtype=np.int32)
-    b[np.arange(val.shape[0]), val] = 1
-    return b
+def to_one_hot(val, shape: int = None) -> np.ndarray:
+
+    def to_one_hot_array(val: np.ndarray) -> np.ndarray:
+        b = np.zeros((val.shape[0], val.shape[0]), dtype=np.int32)
+        b[np.arange(val.shape[0]), val] = 1
+        return b
+
+    def to_one_hot_number(val: int, shape: int) -> np.ndarray:
+        b = np.zeros((shape), dtype=np.int32)
+        b[val] = 1
+        return b
+
+    return to_one_hot_array(val) if shape is None else to_one_hot_number(val, shape)
 
 
 def fuzzyfy_mem(M: np.array) -> np.ndarray:

@@ -3,11 +3,11 @@ import shutil
 
 # Vendor
 import numpy as np
-from theano.tensor.nnet import relu, softmax, sigmoid
 
 # Project
 from NRamContext import NRamContext
 from DebugTimestep import DebugTimestep
+from activation_functions import relu, sigmoid, softmax
 from util import print_memories, create_test_dir, create_sample_dir
 
 
@@ -62,7 +62,7 @@ class NRam(object):
             np.tensordot(
                 regs.transpose([1, 0]), coeff.transpose([1, 0]), axes=1
             ).transpose([1, 0]),
-            dtype=np.float32)
+            dtype=np.float64)
 
     def run_gate(self, gate_inputs, mem, gate, controller_coefficients):
         """Return the output of a gate in the circuit.
@@ -91,7 +91,7 @@ class NRam(object):
         return output, mem, args
 
     def run_circuit(self, registers: np.array, mem: np.array, gates: np.array,
-                    controller_coefficients: np.array, debug: DebugTimestep) -> np.array:
+                    controller_coefficients: np.array, debug: DebugTimestep) -> (np.ndarray, np.ndarray):
         # Initially, only the registers may be used as inputs.
         gate_inputs = registers
 
@@ -130,31 +130,31 @@ class NRam(object):
             return values[i], values[i + 1], i + 2
 
         # Extract the 0th (i.e. P( x = 0 )) component from all registers.
-        last_layer = np.array(registers[:, 0][None, ...], dtype=np.float32)
+        last_layer = np.array(registers[:, 0][None, ...], dtype=np.float64)
 
         # Propogate forward to hidden layers.
         idx = 0
         for i in range(self.context.num_hidden_layers):
             W, b, idx = take_params(self.context.network, idx)
-            last_layer = np.array(relu(last_layer.dot(W) + b), dtype=np.float32)
+            last_layer = relu(last_layer.dot(W) + b)
 
         controller_coefficients = []
         for i, gate in enumerate(self.context.gates):
             coeffs = []
             for j in range(gate.arity):
                 W, b, idx = take_params(self.context.network, idx)
-                layer = np.array(softmax(last_layer.dot(W) + b).eval(), dtype=np.float32)
+                layer = softmax(last_layer.dot(W) + b)
                 coeffs.append(layer)
             controller_coefficients.append(coeffs)
 
         # Forward propogate to new register value coefficients.
         for i in range(self.context.num_regs):
             W, b, idx = take_params(self.context.network, idx)
-            coeffs = np.array(softmax(last_layer.dot(W) + b).eval(), dtype=np.float32)
+            coeffs = softmax(last_layer.dot(W) + b)
             controller_coefficients.append(coeffs)
 
         # Forward propogate to generate willingness to complete.
         W, b, idx = take_params(self.context.network, idx)
-        complete = np.array(sigmoid(last_layer.dot(W) + b).eval(), dtype=np.float32)
+        complete = sigmoid(last_layer.dot(W) + b)
 
         return controller_coefficients, complete

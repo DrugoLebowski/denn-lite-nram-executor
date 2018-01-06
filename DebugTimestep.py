@@ -13,7 +13,7 @@ class DebugTimestep(object):
         self.sample = sample
         self._gates = dict()
         self._regs = dict()
-        self._mem = np.array([], dtype=np.float32)
+        self._mem = np.array([], dtype=np.float64)
 
     @property
     def gates(self) -> dict():

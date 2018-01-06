@@ -13,12 +13,12 @@ from App import App
 def to_one_hot(val, shape: int = None) -> np.ndarray:
 
     def to_one_hot_array(val: np.ndarray) -> np.ndarray:
-        b = np.zeros((val.shape[0], val.shape[0]), dtype=np.int32)
+        b = np.zeros((val.shape[0], val.shape[0]), dtype=np.float64)
         b[np.arange(val.shape[0]), val] = 1
         return b
 
     def to_one_hot_number(val: int, shape: int) -> np.ndarray:
-        b = np.zeros((shape), dtype=np.int32)
+        b = np.zeros((shape), dtype=np.float64)
         b[val] = 1
         return b
 
@@ -80,7 +80,7 @@ def print_memories(context, M: np.array, desired_mem: np.array, path: str) -> bo
     plt.imshow(one_hot_mem, cmap="gray")
     plt.savefig("%s/memories.grey.png" % path)
 
-    differences_mem = np.zeros((desired_mem.shape[0], desired_mem.shape[1]), dtype=np.float32)
+    differences_mem = np.zeros((desired_mem.shape[0], desired_mem.shape[1]), dtype=np.float64)
     for s in range(desired_mem.shape[0]):
         for c in range(desired_mem.shape[1]):
             differences_mem[s, c] = desired_mem[s, c].argmax() * M[s, c, desired_mem[s, c]].max() / desired_mem[s, c]

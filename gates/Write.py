@@ -12,4 +12,4 @@ class Write(Gate):
         erase   = tensordot(transpose(ones_like(A) - A, axes=[1, 0]), ones_like(A), axes=1)
         contrib = tensordot(transpose(A, axes=[1, 0]), B, axes=1)
         new_mem = (erase * M) + contrib
-        return new_mem, np.array([x if i != 0 else x + 1 for i, x in enumerate(zeros_like(A))], dtype=np.float32)
+        return new_mem, np.array([x if i != 0 else x + 1 for i, x in enumerate(zeros_like(A))], dtype=np.float64)

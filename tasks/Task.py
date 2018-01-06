@@ -15,7 +15,7 @@ class Task(object):
 
     def __call__(self, *args, **kwargs):
         in_mem, out_mem = self.create()
-        return fuzzyfy_mem(in_mem), out_mem, self.init_regs(np.zeros((self.batch_size, self.num_regs, self.max_int)))
+        return fuzzyfy_mem(in_mem), out_mem, self.init_regs(np.zeros((self.batch_size, self.num_regs, self.max_int), dtype=np.float64))
 
     def __str__(self):
         return self.__class__.__name__

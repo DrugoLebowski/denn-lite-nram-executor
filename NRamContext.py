@@ -36,14 +36,14 @@ class NRamContext(object):
         # Hidden layers (Not output)
         layers = []
         for idx, l in enumerate(network[:-1]):
-            layers.append(np.array(l[0], dtype=np.float32))  # Weights
-            layers.append(np.array(l[1], dtype=np.float32))  # Bias
+            layers.append(np.array(l[0], dtype=np.float64))  # Weights
+            layers.append(np.array(l[1], dtype=np.float64))  # Bias
 
         # Output layers (for every gate coefficient)
         ptr = 0
         output_layer = network[-1]
-        output_layer_weights = np.array(output_layer[0], dtype=np.float32)
-        output_layer_bias = np.array(output_layer[1], dtype=np.float32)
+        output_layer_weights = np.array(output_layer[0], dtype=np.float64)
+        output_layer_bias = np.array(output_layer[1], dtype=np.float64)
         num_registers = self.num_regs
         for idx, g in enumerate(gates_list):
             for _ in range(g.arity):

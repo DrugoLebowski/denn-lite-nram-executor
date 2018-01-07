@@ -45,6 +45,7 @@ class NRam(object):
             if self.context.debug_is_active:
                 for dt in self.context.debug[s]:
                     print(dt)
+                print("\t• Expected mem => %s" % out_mem[s])
             else:
                 print("\t\t   Final memory: %s" % (in_mem[s, :].argmax(axis=1)))
 

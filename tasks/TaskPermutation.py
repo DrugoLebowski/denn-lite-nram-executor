@@ -23,8 +23,6 @@ class TaskPermutation(Task):
             init_mem[idx, 1:pointer] = np.random.permutation(elements_of_A)
         init_mem[:, pointer:(pointer + elements_of_A)] = \
                 np.random.randint(1, self.max_int, size=(self.batch_size, elements_of_A), dtype=np.int32)
-        if self.max_int % 2 == 0:
-            init_mem[:, self.max_int - 1] = -1
 
         out_mem = init_mem.copy()
         permutations = fuzzyfy_mem(out_mem[:, 1:pointer])

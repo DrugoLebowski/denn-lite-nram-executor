@@ -3,7 +3,7 @@ import numpy as np
 
 # Project
 from tasks.Task import Task
-from util import fuzzyfy_mem
+from util import encode
 
 class TaskPermutation(Task):
     """ [Permutation]
@@ -25,7 +25,7 @@ class TaskPermutation(Task):
                 np.random.randint(1, self.max_int, size=(self.batch_size, elements_of_A), dtype=np.int32)
 
         out_mem = init_mem.copy()
-        permutations = fuzzyfy_mem(out_mem[:, 1:pointer])
+        permutations = encode(out_mem[:, 1:pointer])
         for idx in range(self.batch_size):
             out_mem[idx, 1:pointer] = np.tensordot(out_mem[idx, pointer:(pointer + elements_of_A)],
                                                    permutations[idx], axes=(0, 1))

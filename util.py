@@ -25,12 +25,9 @@ def to_one_hot(val, shape: int = None) -> np.ndarray:
     return to_one_hot_array(val) if shape is None else to_one_hot_number(val, shape)
 
 
-def fuzzyfy_mem(M: np.array) -> np.ndarray:
+def encode(M: np.array) -> np.ndarray:
     """ Make the fuzzy version of a list of integer memories """
-    fuzzyfied_mems = []
-    for s in M:
-        fuzzyfied_mems.append(to_one_hot(s))
-    return np.stack(fuzzyfied_mems, axis=0)
+    return np.stack([to_one_hot(s) for s in M], axis=0)
 
 
 def exists_or_create(path: str, flush: bool = False) -> None:

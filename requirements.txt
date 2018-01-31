@@ -1,4 +1,4 @@
-numpy==1.13.3
-theano==0.9.0
+numpy==1.14.0
+theano==1.0.1
 matplotlib==2.1
 pygraphviz==1.3.1

@@ -22,10 +22,10 @@ if __name__ == "__main__":
                     dest="batch_size", type=int,
                     help="The examples to analyze", )
     ap.add_argument("--timesteps", "-t",
-                    dest="timesteps", type=int,
+                    dest="timesteps", type=int, required=True,
                     help="The timesteps that the NRAM must execute", )
     ap.add_argument("--max_int", "-mi",
-                    dest="max_int", type=int,
+                    dest="max_int", type=int, required=True,
                     help="The dimension of the number set", )
     ap.add_argument("--debug", "-d",
                     dest="debug", nargs="?", const=True, default=False,

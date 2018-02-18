@@ -14,9 +14,9 @@ class TaskProduct(Task):
     elements of arrays A and B respectively, and o is a slot for the output.
     """
 
-    def create(self) -> (np.array, np.array):
+    def create(self) -> (np.ndarray, np.ndarray, np.ndarray):
         offset = 3
-        remaining_size = self.max_int - 5
+        remaining_size = int(self.max_int - 5)
         arrays_memory_size = int(remaining_size / 2)
 
         init_mem = np.zeros((self.batch_size, self.max_int), dtype=np.int32)
@@ -33,4 +33,7 @@ class TaskProduct(Task):
         out_mem = init_mem.copy()
         out_mem[:, offset - 1] = prod_a_b
 
-        return init_mem, out_mem
+        cost_mask = np.zeros((self.batch_size, self.max_int), dtype=np.int8)
+        cost_mask[:, offset - 1] = 1
+
+        return init_mem, out_mem, cost_mask

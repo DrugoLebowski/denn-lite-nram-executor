@@ -16,7 +16,7 @@ class TaskWalkBST(Task):
     child, di = 1 represents going to the right child.
     """
 
-    def create(self) -> (np.array, np.array):
+    def create(self) -> (np.ndarray, np.ndarray, np.ndarray):
         def get_element_index(permutation: np.ndarray, idx: int) -> int:
             """ Get the index where the permutation have the value idx. """
             return np.where(permutation == idx)[0][0]
@@ -47,7 +47,6 @@ class TaskWalkBST(Task):
                     return walk_bst(bst, walk[1:], pointer, int(bst[pointer + 1]))
                 else:
                     return walk_bst(bst, walk[1:], pointer, int(bst[pointer + 2]))
-
 
         remaining_size = self.max_int - 3
         num_elements = int(remaining_size / 4)
@@ -101,4 +100,7 @@ class TaskWalkBST(Task):
             out_mem[e] = init_mem[e]
             out_mem[e, 1] = value_found
 
-        return init_mem, out_mem
+        cost_mask = np.ones((self.batch_size, self.max_int), dtype=np.int8)
+        cost_mask[:, 0] = 0
+
+        return init_mem, out_mem, cost_mask

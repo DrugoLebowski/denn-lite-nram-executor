@@ -4,6 +4,7 @@ import numpy as np
 # Project
 from tasks.Task import Task
 
+
 class TaskMerge(Task):
     """ [Merge]
     Given pointers to 2 sorted arrays A and B, and the pointer to the output o,
@@ -13,7 +14,7 @@ class TaskMerge(Task):
     The n + m element should be written in correct order starting from position o.
     """
 
-    def create(self) -> (np.array, np.array):
+    def create(self) -> (np.ndarray, np.ndarray, np.ndarray):
         remaining_size = self.max_int - 6
         offset = 3
         odd_space = not remaining_size % 2 == 0
@@ -23,8 +24,10 @@ class TaskMerge(Task):
         list_size_a_plus_b = list_size_a + list_size_b
 
         init_mem = np.zeros((self.batch_size, self.max_int), dtype=np.int32)
-        list_elements_a = np.sort(np.random.randint(1, self.max_int, size=(self.batch_size, list_size_a), dtype=np.int32))
-        list_elements_b = np.sort(np.random.randint(1, self.max_int, size=(self.batch_size, list_size_b), dtype=np.int32))
+        list_elements_a = np.sort(
+            np.random.randint(1, self.max_int, size=(self.batch_size, list_size_a), dtype=np.int32))
+        list_elements_b = np.sort(
+            np.random.randint(1, self.max_int, size=(self.batch_size, list_size_b), dtype=np.int32))
         list_elements_a_union_b = np.sort(np.concatenate((list_elements_a, list_elements_b), axis=1))
 
         init_mem[:, 0] = offset
@@ -42,4 +45,7 @@ class TaskMerge(Task):
         out_mem = init_mem.copy()
         out_mem[:, (offset + list_size_a_plus_b + 2):(offset + (2 * list_size_a_plus_b) + 2)] = list_elements_a_union_b
 
-        return init_mem, out_mem
+        cost_mask = np.zeros((self.batch_size, self.max_int), dtype=np.int8)
+        cost_mask[:, (offset + list_size_a_plus_b + 2):(offset + (2 * list_size_a_plus_b) + 2)] = 1
+
+        return init_mem, out_mem, cost_mask

@@ -17,7 +17,7 @@ class NRam(object):
         self.context = context
 
     def execute(self) -> None:
-        in_mem, out_mem, regs = self.context.task()
+        in_mem, out_mem, cost_mask, regs = self.context.task()
         print("• Starting execution")
 
         # Create a directory for the sample
@@ -54,7 +54,7 @@ class NRam(object):
                     dt.print_circuit(sample_dir)
 
         if self.context.print_memories:
-            print_memories(self.context, in_mem, out_mem, path)
+            print_memories(self.context, in_mem, out_mem, cost_mask, path)
 
     def avg(self, regs: np.array, coeff: np.array) -> np.array:
         """ Make the product between (registers + output of the gates)

@@ -64,23 +64,34 @@ def create_sample_dir(test_path: str, sample: int) -> str:
     return path
 
 
-def print_memories(context, M: np.array, desired_mem: np.array, path: str) -> bool:
+def print_memories(context, M: np.ndarray, desired_mem: np.ndarray, cost_mask: np.ndarray, path: str) -> bool:
     """ Print the memories of the samples """
     int_M = M.argmax(axis=2)
+    num_samples = M.shape[0]
+    c = 0 # See paper Pag. 7, Sub section 4.2 Tasks
+    m = np.sum(cost_mask) # See paper Pag. 7, Sub section 4.2 Tasks
     one_hot_mem = np.zeros((desired_mem.shape[0], desired_mem.shape[1]), dtype=np.int)
 
+    for sample in range(desired_mem.shape[0]):
+        for col in range(desired_mem.shape[1]):
+            if desired_mem[sample, col] == int_M[sample, col]:
+                one_hot_mem[sample, col] = 1
+                if cost_mask[0, col] == 1:
+                    c += 1
+    error = c / m
+
+    fig = plt.figure()
+    fig.suptitle('Error: %f' % error, fontsize=14)
+
+    ax = fig.add_subplot(111)
+    ax.imshow(one_hot_mem, cmap="gray")
+    fig.savefig("%s/memories.grey.png" % path)
+
+    differences_mem = np.zeros(
+        (desired_mem.shape[0], desired_mem.shape[1]), dtype=np.float64)
     for s in range(desired_mem.shape[0]):
         for c in range(desired_mem.shape[1]):
-            if desired_mem[s, c] == int_M[s, c]:
-                one_hot_mem[s, c] = 1
-
-    plt.imshow(one_hot_mem, cmap="gray")
-    plt.savefig("%s/memories.grey.png" % path)
-
-    differences_mem = np.zeros((desired_mem.shape[0], desired_mem.shape[1]), dtype=np.float64)
-    for s in range(desired_mem.shape[0]):
-        for c in range(desired_mem.shape[1]):
-            differences_mem[s, c] = desired_mem[s, c].argmax() * M[s, c, desired_mem[s, c]].max() / desired_mem[s, c]
+            differences_mem[s, c] = desired_mem[s, c]
 
     plt.imshow(differences_mem, cmap="Blues")
     plt.savefig("%s/memories.blues.png" % path)

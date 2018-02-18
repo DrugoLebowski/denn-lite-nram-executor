@@ -12,7 +12,7 @@ class TaskListSearch(Task):
     “cheating” and just iterating over the whole memory.
     """
 
-    def create(self) -> (np.ndarray, np.ndarray):
+    def create(self) -> (np.ndarray, np.ndarray, np.ndarray):
         list_size = int((self.max_int - 2) / 2)
         list_elements = np.random.randint(0, self.max_int, size=(self.batch_size, list_size))
         lists_elements_permutations = np.stack([np.random.permutation(list_size) for _ in range(self.batch_size)], axis=0)
@@ -32,7 +32,6 @@ class TaskListSearch(Task):
         if self.max_int % 2 != 0:
             init_mem[:, -1] = -1
 
-
         out_mem = init_mem.copy()
         for example in range(self.batch_size):
             found = False
@@ -43,4 +42,8 @@ class TaskListSearch(Task):
                     found = True
                 else:
                     pointer = out_mem[example, pointer]
-        return init_mem, out_mem
+
+        cost_mask = np.zeros((self.batch_size, self.max_int), dtype=np.int8)
+        cost_mask[:, 0] = 1
+
+        return init_mem, out_mem, cost_mask

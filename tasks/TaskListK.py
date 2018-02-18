@@ -14,7 +14,7 @@ class TaskListK(Task):
     hops are needed and out is a cell where the output should be put.
     """
 
-    def create(self) -> (np.ndarray, np.ndarray):
+    def create(self) -> (np.ndarray, np.ndarray, np.ndarray):
         list_size = int((self.max_int - 4) / 2)
         hops = np.random.randint(0, list_size, size=(self.batch_size))
         list_elements = np.random.randint(0, self.max_int, size=(self.batch_size, list_size))
@@ -43,4 +43,8 @@ class TaskListK(Task):
                 output_value = out_mem[example, pointer + 1]
                 pointer = out_mem[example, pointer]
             out_mem[example, out_mem[example, 2]] = output_value
-        return init_mem, out_mem
+
+        cost_mask = np.zeros((self.batch_size, self.max_int), dtype=np.int8)
+        cost_mask[:, 2] = 1
+
+        return init_mem, out_mem, cost_mask

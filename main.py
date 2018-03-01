@@ -30,6 +30,9 @@ if __name__ == "__main__":
     ap.add_argument("--debug", "-d",
                     dest="debug", nargs="?", const=True, default=False,
                     help="Write out the debug of NRAM", )
+    ap.add_argument("--info", "-i",
+                    dest="info", nargs="?", const=True, default=False,
+                    help="Write out the info of NRAM, like memories and registers", )
     ap.add_argument("--print_circuits", "-pc",
                     dest="print_circuits", nargs='?', const=True, default=False,
                     help="Draw the circuit of each timestep to a file with a progressive numeration [e.g. <filename>.1.1.png, ..., <filename>.S.T.png, where S is the sample and T is the timestep]",)
@@ -51,7 +54,8 @@ if __name__ == "__main__":
         network=test["network"],
         gates=[ GateFactory.create(g) for g in test_args["gates"] ],
         debug_is_active=args.debug,
+        info_is_active=args.info,
         print_circuits=args.print_circuits,
         print_memories=args.print_memories,
-        path_config_file=os.path.abspath(args.file)
+        path_config_file=os.path.abspath(args.file),
     )).execute()

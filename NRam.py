@@ -4,6 +4,8 @@ import shutil
 # Vendor
 import numpy as np
 
+from tqdm import tqdm
+
 # Project
 from NRamContext import NRamContext
 from DebugTimestep import DebugTimestep
@@ -25,9 +27,10 @@ class NRam(object):
         shutil.copyfile(self.context.path_config_file, "%s/config.json" % path)
 
         # Iterate over sample
-        for s in range(self.context.batch_size):
-            print("\nSample[%d], Initial memory: %s, Desired memory: %s, Initial registers: %s"
-                  % (s, in_mem[s, :].argmax(axis=1), out_mem[s], regs[s, :].argmax(axis=1)))
+        for s in tqdm(range(self.context.batch_size)) if not self.context.info_is_active else range(self.context.batch_size):
+            if self.context.info_is_active:
+                print("\nSample[%d], Initial memory: %s, Desired memory: %s, Initial registers: %s"
+                    % (s, in_mem[s, :].argmax(axis=1), out_mem[s], regs[s, :].argmax(axis=1)))
 
             # Create dir for the single example
             sample_dir = create_sample_dir(path, s)
@@ -47,7 +50,8 @@ class NRam(object):
                     print(dt)
                 print("\t• Expected mem => %s" % out_mem[s])
             else:
-                print("\t\t   Final memory: %s" % (in_mem[s, :].argmax(axis=1)))
+                if self.context.info_is_active:
+                    print("\t\t   Final memory: %s" % (in_mem[s, :].argmax(axis=1)))
 
             if self.context.print_circuits:
                 for dt in self.context.debug[s]:

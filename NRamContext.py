@@ -9,7 +9,7 @@ class NRamContext(object):
     def __init__(self, batch_size: int, max_int: int, timesteps: int,
                  task_type: str, gates: list, network: list, debug_is_active: bool,
                  print_circuits: str, print_memories: str,
-                 path_config_file: str, ) -> None:
+                 path_config_file: str, info_is_active: bool, ) -> None:
         self.gates = gates
         self.num_regs = len(network[0][0])
         self.num_hidden_layers = len(network[0:len(network) - 1])
@@ -23,6 +23,7 @@ class NRamContext(object):
         # Every entry of the debug list is associated to a sample
         self.debug = list()
         self.debug_is_active = debug_is_active
+        self.info_is_active = info_is_active
 
         # If None then the circuits will be not draw
         self.print_circuits = print_circuits

@@ -78,10 +78,10 @@ def print_memories(context, M: np.ndarray, desired_mem: np.ndarray, cost_mask: n
                 one_hot_mem[sample, col] = 1
                 if cost_mask[0, col] == 1:
                     c += 1
-    error = c / m
+    perc_correct = c / m
 
     fig = plt.figure()
-    fig.suptitle('Error: %f' % (1 - error), fontsize=14)
+    fig.suptitle('Correct: %f, Error: %f' % (perc_correct, (1 - perc_correct)), fontsize=14)
 
     plt.imshow(one_hot_mem, cmap="gray", vmin=0.0, vmax=1.0)
     plt.savefig("%s/memories.grey.png" % path)

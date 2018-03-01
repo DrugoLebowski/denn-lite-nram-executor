@@ -81,11 +81,10 @@ def print_memories(context, M: np.ndarray, desired_mem: np.ndarray, cost_mask: n
     error = c / m
 
     fig = plt.figure()
-    fig.suptitle('Error: %f' % error, fontsize=14)
+    fig.suptitle('Error: %f' % (1 - error), fontsize=14)
 
-    ax = fig.add_subplot(111)
-    ax.imshow(one_hot_mem, cmap="gray")
-    fig.savefig("%s/memories.grey.png" % path)
+    plt.imshow(one_hot_mem, cmap="gray", vmin=0.0, vmax=1.0)
+    plt.savefig("%s/memories.grey.png" % path)
 
     differences_mem = np.zeros(
         (desired_mem.shape[0], desired_mem.shape[1]), dtype=np.float64)

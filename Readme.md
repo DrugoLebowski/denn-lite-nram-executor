@@ -13,7 +13,6 @@ Prerequisites
 -------------
 - Python 3.5+
 - NumPy 1.14.0
-- Theano 1.0.1
 - matplotlib 2.1
 - pygraphviz 1.3.1
 - tqdm 4.19.6

@@ -1,4 +1,5 @@
 # Standard
+import os
 import shutil
 
 # Vendor
@@ -7,10 +8,11 @@ import numpy as np
 from tqdm import tqdm
 
 # Project
+from App import App
 from NRamContext import NRamContext
 from DebugTimestep import DebugTimestep
 from activation_functions import relu, sigmoid, softmax
-from util import print_memories, create_test_dir, create_sample_dir
+from util import print_memories, create_dir
 
 
 class NRam(object):
@@ -19,12 +21,27 @@ class NRam(object):
         self.context = context
 
     def execute(self) -> None:
-        in_mem, out_mem, cost_mask, regs = self.context.task()
-        print("• Starting execution")
+        print("• Execution started")
+        # Create the base directory for a task (e.g. TaskAccess)
+        task_base_path = "%s%s" % (App.get("images_path"), self.context.tasks[0].__str__())
+        create_dir(task_base_path)
 
-        # Create a directory for the sample
-        path = create_test_dir(self.context)
-        shutil.copyfile(self.context.path_config_file, "%s/config.json" % path)
+        # Create the base directory for a test of DENN
+        config_filename_without_extension = os.path.splitext(os.path.basename(self.context.path_config_file))[0]
+        test_task_base_path = "%s/%s" % (task_base_path, config_filename_without_extension)
+        create_dir(test_task_base_path, True) # Destroy all if the directory already exists
+
+        # Copy the config file, for coherence
+        shutil.copyfile(self.context.path_config_file, "%s/config.json" % test_task_base_path)
+
+        for test_idx, task in enumerate(self.context.tasks):
+            self.__test(test_idx, test_task_base_path, *task())
+        print("• Execution terminated")
+
+    def __test(self, test_idx, base_path, in_mem, out_mem, cost_mask, regs, timesteps) -> None:
+        # Create a directory for the difficulty
+        difficulty_test_base_path = "%s/%s" % (base_path, test_idx)
+        create_dir(difficulty_test_base_path, True)
 
         # Iterate over sample
         for s in tqdm(range(self.context.batch_size)) if not self.context.info_is_active else range(self.context.batch_size):
@@ -32,35 +49,32 @@ class NRam(object):
                 print("\nSample[%d], Initial memory: %s, Desired memory: %s, Initial registers: %s"
                     % (s, in_mem[s, :].argmax(axis=1), out_mem[s], regs[s, :].argmax(axis=1)))
 
-            # Create dir for the single example
-            sample_dir = create_sample_dir(path, s)
-
             # Iterate for every timestep
             self.context.debug.append(list()) # Init debug dictionary for the sample
-            for t in range(self.context.timesteps):
-                coeffs, _ = self.run_network(regs[s])
+            for t in range(timesteps):
+                coeffs, _ = self.__run_network(regs[s])
 
                 dt = DebugTimestep(self.context, t, s)
-                regs[s], in_mem[s] = self.run_circuit(regs[s], in_mem[s], self.context.gates, coeffs, dt)
+                regs[s], in_mem[s] = self.__run_circuit(regs[s], in_mem[s], self.context.gates, coeffs, dt)
                 self.context.debug[s].append(dt)
 
             # Debug for the sample
-            if self.context.debug_is_active:
+            if self.context.info_is_active:
                 for dt in self.context.debug[s]:
                     print(dt)
                 print("\t• Expected mem => %s" % out_mem[s])
-            else:
-                if self.context.info_is_active:
-                    print("\t\t   Final memory: %s" % (in_mem[s, :].argmax(axis=1)))
 
             if self.context.print_circuits:
+                # Create dir for the single example of a difficulty
+                sample_difficulty_base_path = "%s/%s" % (difficulty_test_base_path, s)
+                create_dir(sample_difficulty_base_path, True)
                 for dt in self.context.debug[s]:
-                    dt.print_circuit(sample_dir)
+                    dt.print_circuit(sample_difficulty_base_path)
 
-        if self.context.print_memories:
-            print_memories(self.context, in_mem, out_mem, cost_mask, path)
+        print_memories(self.context, in_mem, out_mem, cost_mask, difficulty_test_base_path, test_idx)
 
-    def avg(self, regs: np.array, coeff: np.array) -> np.array:
+
+    def __avg(self, regs: np.array, coeff: np.array) -> np.array:
         """ Make the product between (registers + output of the gates)
             and a coefficient for the value selection """
         return np.array(
@@ -69,7 +83,7 @@ class NRam(object):
             ).transpose([1, 0]),
             dtype=np.float64)
 
-    def run_gate(self, gate_inputs, mem, gate, controller_coefficients):
+    def __run_gate(self, gate_inputs, mem, gate, controller_coefficients):
         """Return the output of a gate in the circuit.
 
         gate_inputs:
@@ -81,7 +95,7 @@ class NRam(object):
           A list of coefficient arrays from the controller,
           one coefficient for every gate input (0 for constants).
         """
-        args = [self.avg(gate_inputs, coefficients)
+        args = [self.__avg(gate_inputs, coefficients)
                 for coefficients in controller_coefficients]
         mem, output = gate(mem, *args)
 
@@ -95,7 +109,7 @@ class NRam(object):
 
         return output, mem, args
 
-    def run_circuit(self, registers: np.array, mem: np.array, gates: np.array,
+    def __run_circuit(self, registers: np.array, mem: np.array, gates: np.array,
                     controller_coefficients: np.array, debug: DebugTimestep) -> (np.ndarray, np.ndarray):
         # Initially, only the registers may be used as inputs.
         gate_inputs = registers
@@ -106,7 +120,7 @@ class NRam(object):
 
         # Run through all the gates.
         for i, (gate, coeffs) in enumerate(zip(gates, controller_coefficients)):
-            output, mem, args = self.run_gate(gate_inputs, mem, gate, coeffs)
+            output, mem, args = self.__run_gate(gate_inputs, mem, gate, coeffs)
 
             gate_info = dict()
             for i in range(gate.arity):
@@ -121,13 +135,13 @@ class NRam(object):
 
         # All leftover coefficients are for registers.
         for i, coeff in enumerate(controller_coefficients[len(gates):]):
-            gate_inputs[i] = self.avg(gate_inputs, coeff)
+            gate_inputs[i] = self.__avg(gate_inputs, coeff)
             debug_step_regs[str(i)] = [coeff.argmax(), gate_inputs[i].argmax()]
         debug.regs = debug_step_regs
 
         return gate_inputs[np.arange(self.context.num_regs)], mem
 
-    def run_network(self, registers: np.array) -> np.array:
+    def __run_network(self, registers: np.array) -> np.array:
 
         def take_params(values, i):
             """Return the next pair of weights and biases after the

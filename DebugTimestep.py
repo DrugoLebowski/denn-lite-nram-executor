@@ -49,7 +49,7 @@ class DebugTimestep(object):
             else:
                 return context.gates[idx - context.num_regs].__str__()
 
-        G = pgv.AGraph(directed=True, strict=False, name="%s - Timestep %s" % (self.context.task.__str__(), self.timestep))
+        G = pgv.AGraph(directed=True, strict=False, name="%s - Timestep %s" % (self.context.tasks[0].__str__(), self.timestep))
         G.graph_attr["rankdir"] = "LR"
         for r in range(context.num_regs):
             node_name = "R%s" % str(r)

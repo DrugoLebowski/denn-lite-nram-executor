@@ -18,7 +18,8 @@ class Task(object):
         return encode(in_mem), \
                out_mem, \
                cost_mask, \
-               self.init_regs(np.zeros((self.batch_size, self.num_regs, self.max_int), dtype=np.float64))
+               self.init_regs(np.zeros((self.batch_size, self.num_regs, self.max_int), dtype=np.float64)), \
+               self.timesteps
 
     def __str__(self):
         return self.__class__.__name__

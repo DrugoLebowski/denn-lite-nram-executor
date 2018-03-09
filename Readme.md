@@ -16,6 +16,7 @@ Prerequisites
 - Theano 1.0.1
 - matplotlib 2.1
 - pygraphviz 1.3.1
+- tqdm 4.19.6
 #### Install requirements 
 ```sh
 $ pip install -r requirements.txt
@@ -33,54 +34,44 @@ To recall the help:
 
 Flags
 -----
-#### --debug
-Activate the command line printing of every execution timestep, with all
+#### --info
+Activate the printing to console of every execution timestep, with all
 the information about the gates and registers (like coefficients and values).
 
 ```sh
-$ python main.py tests/example.json --debug
+$ python main.py tests/example.json --info
 
 OR
 
-$ python main.py tests/example.json -d
+$ python main.py tests/example.json -i
 ```
 
-#### --timesteps N
-Modify the running timesteps of NRAM.
+#### --timesteps N+
+The list of timesteps for which the NRAM should been run.
 ```sh
-$ python main.py tests/example.py --timesteps 10
+$ python main.py tests/example.py --timesteps 10 [...]
 
 OR
 
-$ python main.py tests/example.py -t 10
+$ python main.py tests/example.py -t 10 [...]
 ```
 
-#### --max_int N
-The set of integers which the NRAM use.
+#### --max_int N+
+The list of difficulties of integers for which the NRAM should work on.
 ```sh
-$ python main.py tests/example.py --max_int 10
+$ python main.py tests/example.py --max_int 10 [...]
 
 OR
 
-$ python main.py tests/example.py -mi 10
+$ python main.py tests/example.py -mi 10 [...]
 ```
 
 #### --print_circuits
-Activate the saving to an image file of the timestep's circuit for every sample.
+Activate for each sample the saving to an image file of the circuit of the timesteps.
 ```sh
 $ python main.py tests/example.py --print_circuits
 
 OR
 
 $ python main.py tests/example.py -pc
-```
-
-#### --print_memories
-Activate the saving to an image file of the memory status at the end of computation.
-```sh
-$ python main.py tests/example.py --print_memories
-
-OR
-
-$ python main.py tests/example.py -pm
 ```

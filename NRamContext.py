@@ -6,30 +6,35 @@ from factories.TaskFactory import TaskFactory
 
 
 class NRamContext(object):
-    def __init__(self, batch_size: int, max_int: int, timesteps: int,
-                 task_type: str, gates: list, network: list, debug_is_active: bool,
-                 print_circuits: str, print_memories: str,
-                 path_config_file: str, info_is_active: bool, ) -> None:
+    def __init__(self,
+                 batch_size:        int,
+                 l_max_int:         list,
+                 l_timesteps:       list,
+                 task_type:         str,
+                 gates:             list,
+                 network:           list,
+                 print_circuits:    str,
+                 path_config_file:  str,
+                 info_is_active:    bool, ) -> None:
         self.gates = gates
         self.num_regs = len(network[0][0])
         self.num_hidden_layers = len(network[0:len(network) - 1])
         self.network = self.mlp_params(network, self.gates)
 
         self.batch_size = batch_size
-        self.max_int = max_int
-        self.timesteps = timesteps
-        self.task = TaskFactory.create(task_type, self.batch_size, self.max_int, self.num_regs, self.timesteps)
+        self.l_max_int = l_max_int
+        self.l_timesteps = l_timesteps
+        self.tasks = list()
+        for max_int, timesteps in zip(self.l_max_int, self.l_timesteps):
+            self.tasks.append(
+                TaskFactory.create(task_type, self.batch_size, max_int, self.num_regs, timesteps))
 
         # Every entry of the debug list is associated to a sample
         self.debug = list()
-        self.debug_is_active = debug_is_active
         self.info_is_active = info_is_active
 
         # If None then the circuits will be not draw
         self.print_circuits = print_circuits
-
-        # Like above, but with memories
-        self.print_memories = print_memories
 
         self.path_config_file = path_config_file
 

@@ -55,9 +55,6 @@ if __name__ == "__main__":
         test = json.load(f)
         test_args = test["arguments"]
 
-    print("Args", args)
-    print("Leftovers", leftovers)
-
     NRam(NRamContext(
         batch_size=args.batch_size,
         l_max_int=args.max_ints,

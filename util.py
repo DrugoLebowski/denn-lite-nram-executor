@@ -70,9 +70,9 @@ def print_memories(context, M: np.ndarray, desired_mem: np.ndarray, cost_mask: n
         (desired_mem.shape[0], desired_mem.shape[1]), dtype=np.float64)
     for s in range(desired_mem.shape[0]):
         for c in range(desired_mem.shape[1]):
-            differences_mem[s, c] = desired_mem[s, c]
+            differences_mem[s, c] = M[s, c, desired_mem[s, c]]
 
-    plt.imshow(differences_mem, cmap="Blues")
+    plt.imshow(differences_mem, cmap="Blues", vmin=0.0, vmax=1.0)
     plt.savefig("%s/%d.memories.blues.png" % (path, test_idx))
 
     return True

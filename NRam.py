@@ -64,12 +64,15 @@ class NRam(object):
                     print(dt)
                 print("\t• Expected mem => %s" % out_mem[s])
 
-            if self.context.print_circuits:
+            if self.context.print_circuits is not 0:
                 # Create dir for the single example of a difficulty
                 sample_difficulty_base_path = "%s/%s" % (difficulty_test_base_path, s)
                 create_dir(sample_difficulty_base_path, True)
                 for dt in self.context.debug[s]:
-                    dt.print_circuit(sample_difficulty_base_path)
+                    if self.context.print_circuits is 1:
+                        dt.print_circuit(sample_difficulty_base_path)
+                    else:
+                        dt.print_circuit_pruned(sample_difficulty_base_path)
 
         print_memories(self.context, in_mem, out_mem, cost_mask, difficulty_test_base_path, test_idx)
 

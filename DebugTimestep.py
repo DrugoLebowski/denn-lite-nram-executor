@@ -1,3 +1,6 @@
+# Standard
+from subprocess import Popen
+
 # Vendor
 import numpy as np
 import pygraphviz as pgv
@@ -40,14 +43,16 @@ class DebugTimestep(object):
     def mem(self, mem: dict) -> None:
         self._mem = mem
 
-    def print_circuit(self, path: str) -> bool:
-        """ Print the circuit for the samples """
 
-        def retrieve_gates_or_register(idx: int) -> str:
-            if idx in range(context.num_regs):
-                return "R%s" % idx
-            else:
-                return context.gates[idx - context.num_regs].__str__()
+    def __retrieve_gates_or_register(self, idx: int) -> str:
+        """Retrieve the right name for a coefficient (i.e. if it is a Register or a Gate)"""
+        if idx in range(self.context.num_regs):
+            return "R%s" % idx
+        else:
+            return self.context.gates[idx - self.context.num_regs].__str__()
+
+    def print_circuit_pruned(self, path: str) -> bool:
+        """ Print the circuit for the samples """
 
         context = self.context
         nodes = {}
@@ -58,32 +63,37 @@ class DebugTimestep(object):
         for g in context.gates:
             nodes[g.__str__()] = Node(Node.Register, g.__str__(), g.arity)
             for a in range(g.arity):
-                coeff = retrieve_gates_or_register(self.gates[g.__str__()][str(a)][0])
+                coeff = self.__retrieve_gates_or_register(self.gates[g.__str__()][str(a)][0])
                 nodes[coeff].add_node(nodes[g.__str__()])
 
         for r in range(context.num_regs):
             node_name = "R'%s" % str(r)
             nodes["R'%s" % str(r)] = Node(Node.Register, node_name)
-            nodes[retrieve_gates_or_register(self.regs[str(r)][0])].add_node(nodes[node_name])
+            nodes[self.__retrieve_gates_or_register(self.regs[str(r)][0])].add_node(nodes[node_name])
 
         right_nodes = []
         for key, node in nodes.items():
             if node.check_validity() and key not in right_nodes:
                 right_nodes.append(node.name)
 
+        return self.print_circuit(path, right_nodes)
+
+    def print_circuit(self, path: str, nodes_to_prune: list = list()) -> bool:
+        context = self.context
+
         G = pgv.AGraph(directed=True, strict=False, name="%s - Timestep %s" % (self.context.tasks[0].__str__(), self.timestep))
         G.graph_attr["rankdir"] = "LR"
         for r in range(context.num_regs):
             node_name = "R%s" % str(r)
-            if node_name in right_nodes:
+            if len(nodes_to_prune) == 0 or node_name in nodes_to_prune:
                 G.add_node(node_name, shape="circle")
 
         for g in context.gates:
-            if g.__str__() in right_nodes:
+            if len(nodes_to_prune) == 0 or g.__str__() in nodes_to_prune:
                 G.add_node(g.__str__(), shape="rectangle")
                 G.get_node(g.__str__()).attr["style"] = "bold"
                 for a in range(g.arity):
-                    coeff = retrieve_gates_or_register(self.gates[g.__str__()][str(a)][0])
+                    coeff = self.__retrieve_gates_or_register(self.gates[g.__str__()][str(a)][0])
                     G.add_edge(coeff, g.__str__())
                     if g.__str__() is "Write":
                         G.get_edge(coeff, g.__str__()).attr["label"] = "ptr" if a is 0 else "val"
@@ -92,10 +102,10 @@ class DebugTimestep(object):
 
         for r in range(context.num_regs):
             node_name = "R'%s" % str(r)
-            if node_name in right_nodes:
+            if len(nodes_to_prune) == 0 or node_name in nodes_to_prune:
                 G.add_node("R'%s" % str(r))
                 G.add_node(node_name, shape="circle")
-                G.add_edge(retrieve_gates_or_register(self.regs[str(r)][0]), node_name)
+                G.add_edge(self.__retrieve_gates_or_register(self.regs[str(r)][0]), node_name)
 
         # Removes the unattached register not modified and gates not attached to other objects (gates/register)
         for node in G.nodes_iter():
@@ -103,7 +113,11 @@ class DebugTimestep(object):
                 G.remove_node(node.name)
 
         G.layout(prog="dot")
-        G.draw("%s/circuit.%s.png" % (path, self.timestep), format="png")
+        circuit_path = "%s/circuit.%s" % (path, self.timestep)
+        G.draw("%s.png" % circuit_path, format="png")
+        G.write("%s.dot" % circuit_path)
+
+        Popen("dot2tex -ftikz %s.dot > %s.tex" % (circuit_path, circuit_path), shell=True).wait()
 
         return True
 

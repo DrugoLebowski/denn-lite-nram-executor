@@ -44,11 +44,15 @@ if __name__ == "__main__":
                     help="Write out the info of NRAM, like memories and registers", )
     ap.add_argument("--print_circuits", "-pc",
                     dest="print_circuits",
-                    nargs='?',
-                    const=True,
-                    default=False,
+                    type=int,
+                    default=0,
                     help="Draw the circuit of each timestep to a file with a progressive numeration [e.g. "
-                         "<filename>.1.1.png, ..., <filename>.S.T.png, where S is the sample and T is the timestep]",)
+                         "<filename>.1.1.png, ..., <filename>.S.T.png, where S is the sample and T is the timestep]. "
+                         "With: "
+                         "  • 0 the circuits are not printed; "
+                         "  • 1 the circuits are printed entirely; "
+                         "  • 2 the circuits are printed pruning the Gates or Registers R* which have not a path to a Register(s) R'*.",)
+
     args, leftovers = ap.parse_known_args()
 
     with open(args.file) as f:

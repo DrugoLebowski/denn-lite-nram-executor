@@ -3,6 +3,7 @@ import numpy as np
 import pygraphviz as pgv
 
 # Project
+from Node import Node
 from NRamContext import NRamContext
 
 
@@ -41,7 +42,6 @@ class DebugTimestep(object):
 
     def print_circuit(self, path: str) -> bool:
         """ Print the circuit for the samples """
-        context = self.context
 
         def retrieve_gates_or_register(idx: int) -> str:
             if idx in range(context.num_regs):
@@ -49,28 +49,53 @@ class DebugTimestep(object):
             else:
                 return context.gates[idx - context.num_regs].__str__()
 
+        context = self.context
+        nodes = {}
+
+        for r in range(context.num_regs):
+            nodes["R%s" % str(r)] = Node(Node.Register, "R%s" % str(r))
+
+        for g in context.gates:
+            nodes[g.__str__()] = Node(Node.Register, g.__str__(), g.arity)
+            for a in range(g.arity):
+                coeff = retrieve_gates_or_register(self.gates[g.__str__()][str(a)][0])
+                nodes[coeff].add_node(nodes[g.__str__()])
+
+        for r in range(context.num_regs):
+            node_name = "R'%s" % str(r)
+            nodes["R'%s" % str(r)] = Node(Node.Register, node_name)
+            nodes[retrieve_gates_or_register(self.regs[str(r)][0])].add_node(nodes[node_name])
+
+        right_nodes = []
+        for key, node in nodes.items():
+            if node.check_validity() and key not in right_nodes:
+                right_nodes.append(node.name)
+
         G = pgv.AGraph(directed=True, strict=False, name="%s - Timestep %s" % (self.context.tasks[0].__str__(), self.timestep))
         G.graph_attr["rankdir"] = "LR"
         for r in range(context.num_regs):
             node_name = "R%s" % str(r)
-            G.add_node(node_name, shape="circle")
+            if node_name in right_nodes:
+                G.add_node(node_name, shape="circle")
 
         for g in context.gates:
-            G.add_node(g.__str__(), shape="rectangle")
-            G.get_node(g.__str__()).attr["style"] = "bold"
-            for a in range(g.arity):
-                coeff = retrieve_gates_or_register(self.gates[g.__str__()][str(a)][0])
-                G.add_edge(coeff, g.__str__())
-                if g.__str__() is "Write":
-                    G.get_edge(coeff, g.__str__()).attr["label"] = "ptr" if a is 0 else "val"
-                elif g.__str__() in ["LessThan", "LessThanEqual", "EqualThan", "Min", "Max"]:
-                    G.get_edge(coeff, g.__str__()).attr["label"] = "x" if a is 0 else "y"
+            if g.__str__() in right_nodes:
+                G.add_node(g.__str__(), shape="rectangle")
+                G.get_node(g.__str__()).attr["style"] = "bold"
+                for a in range(g.arity):
+                    coeff = retrieve_gates_or_register(self.gates[g.__str__()][str(a)][0])
+                    G.add_edge(coeff, g.__str__())
+                    if g.__str__() is "Write":
+                        G.get_edge(coeff, g.__str__()).attr["label"] = "ptr" if a is 0 else "val"
+                    elif g.__str__() in ["LessThan", "LessThanEqual", "EqualThan", "Min", "Max"]:
+                        G.get_edge(coeff, g.__str__()).attr["label"] = "x" if a is 0 else "y"
 
         for r in range(context.num_regs):
             node_name = "R'%s" % str(r)
-            G.add_node("R'%s" % str(r))
-            G.add_node(node_name, shape="circle")
-            G.add_edge(retrieve_gates_or_register(self.regs[str(r)][0]), node_name)
+            if node_name in right_nodes:
+                G.add_node("R'%s" % str(r))
+                G.add_node(node_name, shape="circle")
+                G.add_edge(retrieve_gates_or_register(self.regs[str(r)][0]), node_name)
 
         # Removes the unattached register not modified and gates not attached to other objects (gates/register)
         for node in G.nodes_iter():

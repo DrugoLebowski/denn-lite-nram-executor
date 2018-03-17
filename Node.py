@@ -41,21 +41,11 @@ class Node(object):
         self.__nodes.append(node)
 
     def check_validity(self) -> bool:
+        """Check recursively whether there is a path to a Register of the next timestep or to the gate Write."""
+        nodes = self.__nodes.copy()
         for node in self.__nodes:
             if not node.check_validity():
-                self.__nodes.remove(node)
-        if self.name != "Write" and "R'" not in self.name and len(self.__nodes) == 0:
+                nodes.remove(node)
+        if self.name != "Write" and "R'" not in self.name and len(nodes) == 0:
             return False
         return True
-
-    def check_instance(self, name: str) -> bool:
-        if self.__name == name:
-            return True
-        else:
-            if len(self.__nodes) == 0:
-                return False
-            else:
-                for node in self.__nodes:
-                    if node.check_instance(name):
-                        return True
-                return False

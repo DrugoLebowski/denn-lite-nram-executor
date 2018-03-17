@@ -14,6 +14,7 @@ class NRamContext(object):
                  gates:             list,
                  network:           list,
                  print_circuits:    str,
+                 print_memories:    bool,
                  path_config_file:  str,
                  info_is_active:    bool, ) -> None:
         self.gates = gates
@@ -35,6 +36,8 @@ class NRamContext(object):
 
         # If None then the circuits will be not draw
         self.print_circuits = print_circuits
+
+        self.print_memories = print_memories
 
         self.path_config_file = path_config_file
 

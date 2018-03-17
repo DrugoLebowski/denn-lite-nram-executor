@@ -14,13 +14,13 @@ class TaskIncrement(Task):
     def create(self) -> (np.ndarray, np.ndarray, np.ndarray):
         """Task 5: Increment"""
         init_mem = np.zeros((self.batch_size, self.max_int), dtype=np.int32)
-        init_mem[:, :self.timesteps - 1] = \
-            np.random.randint(1, self.max_int, size=(self.batch_size, self.timesteps - 1), dtype=np.int32)
+        init_mem[:, :self.max_int - 1] = \
+            np.random.randint(1, self.max_int, size=(self.batch_size, self.max_int - 1), dtype=np.int32)
 
         out_mem = init_mem.copy()
-        out_mem[:, :self.timesteps - 1] = np.mod(np.add(init_mem[:, :self.timesteps - 1], [1]), self.max_int)
+        out_mem[:, :self.timesteps] = np.mod(np.add(init_mem[:, :self.timesteps], [1]), self.max_int)
 
         cost_mask = np.zeros((self.batch_size, self.max_int), dtype=np.int8)
-        cost_mask[:, 0:self.timesteps - 1] = 1
+        cost_mask[:, 0:self.timesteps] = 1
 
         return init_mem, out_mem, cost_mask

@@ -52,6 +52,12 @@ if __name__ == "__main__":
                          "  • 0 the circuits are not printed; "
                          "  • 1 the circuits are printed entirely; "
                          "  • 2 the circuits are printed pruning the Gates or Registers R* which have not a path to a Register(s) R'*.",)
+    ap.add_argument("--print_memories_in_step_to_file", "-pmtf",
+                    dest="print_memories",
+                    nargs='?',
+                    const=True,
+                    default=False,
+                    help="For each sample and for each step, write to file the memory and the registers.", )
 
     args, leftovers = ap.parse_known_args()
 
@@ -68,5 +74,6 @@ if __name__ == "__main__":
         gates=[ GateFactory.create(g) for g in test_args["gates"] ],
         info_is_active=args.info,
         print_circuits=args.print_circuits,
+        print_memories=args.print_memories,
         path_config_file=os.path.abspath(args.file),
     )).execute()

@@ -15,33 +15,42 @@ class DebugTimestep(object):
         self.context = context
         self.timestep = timestep
         self.sample = sample
-        self._gates = dict()
-        self._regs = dict()
-        self._mem = np.array([], dtype=np.float64)
+        self.__gates = dict()
+        self.__regs = dict()
+        self.__mem = np.array([], dtype=np.float64)
+        self.__mem_previous_mod = np.array([], dtype=np.float64)
 
     @property
     def gates(self) -> dict():
-        return self._gates
+        return self.__gates
 
     @gates.setter
     def gates(self, gates: dict) -> None:
-        self._gates = gates
+        self.__gates = gates
 
     @property
     def regs(self) -> dict():
-        return self._regs
+        return self.__regs
 
     @regs.setter
     def regs(self, regs: dict) -> None:
-        self._regs = regs
+        self.__regs = regs
 
     @property
     def mem(self) -> np.array:
-        return self._mem
+        return self.__mem
 
     @mem.setter
     def mem(self, mem: dict) -> None:
-        self._mem = mem
+        self.__mem = mem
+
+    @property
+    def mem_previous_mod(self) -> np.array:
+        return self.__mem_previous_mod
+
+    @mem_previous_mod.setter
+    def mem_previous_mod(self, mem: dict) -> None:
+        self.__mem_previous_mod = mem
 
 
     def __retrieve_gates_or_register(self, idx: int) -> str:
@@ -51,7 +60,7 @@ class DebugTimestep(object):
         else:
             return self.context.gates[idx - self.context.num_regs].__str__()
 
-    def print_circuit_pruned(self, path: str) -> bool:
+    def print_pruned_circuit(self, path: str) -> bool:
         """ Print the circuit for the samples """
 
         context = self.context
@@ -120,6 +129,24 @@ class DebugTimestep(object):
         Popen("dot2tex -ftikz %s.dot > %s.tex" % (circuit_path, circuit_path), shell=True).wait()
 
         return True
+
+    def print_memory_to_file(self, path: str, max_timestep: int):
+        t = self.timestep
+        with open("%s/memories.txt" % path, "a+") as f:
+            timestep_regs = [reg[1] for idx, reg in self.regs.items()]
+            if t + 1 < max_timestep:
+                f.write("%d & %s & %s \\\\ \n"
+                        % (t + 1,
+                           " & ".join(["%d" % v for v in self.mem_previous_mod]),
+                           " & ".join(["%d" % r for r in timestep_regs])))
+            else:
+                f.write("%d & %s & %s \\\\ \hline \n"
+                        % (t + 1,
+                           " & ".join(["%d" % v for v in self.mem_previous_mod]),
+                           " & ".join(["%d" % r for r in timestep_regs])))
+                f.write("\\rowcolor{Gray}Final & %s & %s \\\\"
+                        % (" & ".join(["%d" % v for v in self.mem]),
+                           " & ".join(["%d" % r for r in timestep_regs])))
 
     def __str__(self) -> str:
 

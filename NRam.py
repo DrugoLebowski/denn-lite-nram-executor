@@ -45,11 +45,16 @@ class NRam(object):
 
         # Iterate over sample
         for s in tqdm(range(self.context.batch_size)) if not self.context.info_is_active else range(self.context.batch_size):
+            if self.context.print_memories or self.context.print_circuits is not 0:
+                sample_difficulty_base_path = "%s/%s" % (difficulty_test_base_path, s)
+                create_dir(sample_difficulty_base_path, True)
+
             if self.context.info_is_active:
                 print("\nSample[%d], Initial memory: %s, Desired memory: %s, Initial registers: %s"
                     % (s, in_mem[s, :].argmax(axis=1), out_mem[s], regs[s, :].argmax(axis=1)))
 
             # Iterate for every timestep
+            initial_memory = in_mem[s].argmax(axis=1)
             self.context.debug.append(list()) # Init debug dictionary for the sample
             for t in range(timesteps):
                 coeffs, _ = self.__run_network(regs[s])
@@ -64,15 +69,21 @@ class NRam(object):
                     print(dt)
                 print("\t• Expected mem => %s" % out_mem[s])
 
+            if self.context.print_memories:
+                with open("%s/memories.txt" % sample_difficulty_base_path, "a+") as f:
+                    f.write("\\textbf{Step} & %s & %s \\\\ \hline \n"
+                            % (" & ".join(["%s" % r for r in range(out_mem.shape[1])]),
+                               " & ".join(["\\textit{r}%d" % r for r in range(self.context.num_regs)])))
+                for dt in self.context.debug[s]:
+                    dt.print_memory_to_file(sample_difficulty_base_path, timesteps)
+
             if self.context.print_circuits is not 0:
                 # Create dir for the single example of a difficulty
-                sample_difficulty_base_path = "%s/%s" % (difficulty_test_base_path, s)
-                create_dir(sample_difficulty_base_path, True)
                 for dt in self.context.debug[s]:
                     if self.context.print_circuits is 1:
                         dt.print_circuit(sample_difficulty_base_path)
                     else:
-                        dt.print_circuit_pruned(sample_difficulty_base_path)
+                        dt.print_pruned_circuit(sample_difficulty_base_path)
 
         print_memories(self.context, in_mem, out_mem, cost_mask, difficulty_test_base_path, test_idx)
 
@@ -121,6 +132,7 @@ class NRam(object):
         debug_step_gates = dict()
         debug_step_regs  = dict()
 
+        debug.mem_previous_mod = mem.argmax(axis=1)
         # Run through all the gates.
         for i, (gate, coeffs) in enumerate(zip(gates, controller_coefficients)):
             output, mem, args = self.__run_gate(gate_inputs, mem, gate, coeffs)

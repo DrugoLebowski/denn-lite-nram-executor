@@ -43,17 +43,17 @@ class NRam(object):
             in_mem, out_mem, cost_mask, regs, timesteps = task()
             # Iterate over sample
             with concurrent.futures.ProcessPoolExecutor(max_workers=self.context.process_pool) as executor:
-                futures = [executor.submit(self.execute_test_sample, self.context, s, test_idx, test_task_base_path,
-                                           difficulty_test_base_path, in_mem[s], out_mem[s], cost_mask, regs[s], timesteps)
+                futures = [executor.submit(self.execute_test_sample, self.context, s,difficulty_test_base_path,
+                                           in_mem[s], out_mem[s], regs[s], timesteps)
                            for s in range(self.context.batch_size)]
                 if not self.context.info_is_active:
                     for f in tqdm(concurrent.futures.as_completed(futures), total=self.context.batch_size):
-                        pass
+                        s, modified_in_mem = f.result()
+                        in_mem[s] = modified_in_mem
                 print_memories(in_mem, out_mem, cost_mask, difficulty_test_base_path, test_idx)
         print("• Execution terminated")
 
-    def execute_test_sample(self, context, s, test_idx, base_path, difficulty_test_base_path,
-                              in_mem, out_mem, cost_mask, regs, timesteps):
+    def execute_test_sample(self, context, s, difficulty_test_base_path, in_mem, out_mem, regs, timesteps):
         if context.print_memories or context.print_circuits is not 0:
             sample_difficulty_base_path = "%s/%s" % (difficulty_test_base_path, s)
             create_dir(sample_difficulty_base_path, True)
@@ -92,6 +92,8 @@ class NRam(object):
                     dt.print_circuit(sample_difficulty_base_path)
                 else:
                     dt.print_pruned_circuit(sample_difficulty_base_path)
+
+        return s, in_mem
 
     def __avg(self, regs: np.array, coeff: np.array) -> np.array:
         """ Make the product between (registers + output of the gates)

@@ -16,7 +16,8 @@ class NRamContext(object):
                  print_circuits:    str,
                  print_memories:    bool,
                  path_config_file:  str,
-                 info_is_active:    bool, ) -> None:
+                 info_is_active:    bool,
+                 process_pool:      int) -> None:
         self.gates = gates
         self.num_regs = len(network[0][0])
         self.num_hidden_layers = len(network[0:len(network) - 1])
@@ -31,7 +32,6 @@ class NRamContext(object):
                 TaskFactory.create(task_type, self.batch_size, max_int, self.num_regs, timesteps))
 
         # Every entry of the debug list is associated to a sample
-        self.debug = list()
         self.info_is_active = info_is_active
 
         # If None then the circuits will be not draw
@@ -40,6 +40,8 @@ class NRamContext(object):
         self.print_memories = print_memories
 
         self.path_config_file = path_config_file
+
+        self.process_pool = process_pool
 
     def mlp_params(self, network: list, gates_list: list) -> list:
         # Hidden layers (Not output)

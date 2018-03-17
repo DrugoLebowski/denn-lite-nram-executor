@@ -3,6 +3,8 @@ import os
 import shutil
 
 # Vendor
+import matplotlib as mpl
+mpl.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -43,7 +45,7 @@ def create_dir(path: str, flush: bool = False) -> None:
                 print(e)
 
 
-def print_memories(context, M: np.ndarray, desired_mem: np.ndarray, cost_mask: np.ndarray, path: str, test_idx: int) -> bool:
+def print_memories(M: np.ndarray, desired_mem: np.ndarray, cost_mask: np.ndarray, path: str, test_idx: int) -> bool:
     """ Print the memories of the samples """
     int_M = M.argmax(axis=2)
     c = 0 # See paper Pag. 7, Sub section 4.2 Tasks

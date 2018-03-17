@@ -1,4 +1,5 @@
 # Standard
+import concurrent.futures
 import os
 import shutil
 
@@ -35,58 +36,62 @@ class NRam(object):
         shutil.copyfile(self.context.path_config_file, "%s/config.json" % test_task_base_path)
 
         for test_idx, task in enumerate(self.context.tasks):
-            self.__test(test_idx, test_task_base_path, *task())
+            difficulty_test_base_path = "%s/%s" % (test_task_base_path, test_idx)
+            create_dir(difficulty_test_base_path, True)
+
+            # Retrieve batch of difficulty
+            in_mem, out_mem, cost_mask, regs, timesteps = task()
+            # Iterate over sample
+            with concurrent.futures.ProcessPoolExecutor(max_workers=self.context.process_pool) as executor:
+                futures = [executor.submit(self.execute_test_sample, self.context, s, test_idx, test_task_base_path,
+                                           difficulty_test_base_path, in_mem[s], out_mem[s], cost_mask, regs[s], timesteps)
+                           for s in range(self.context.batch_size)]
+                if not self.context.info_is_active:
+                    for f in tqdm(concurrent.futures.as_completed(futures), total=self.context.batch_size):
+                        pass
+                print_memories(in_mem, out_mem, cost_mask, difficulty_test_base_path, test_idx)
         print("• Execution terminated")
 
-    def __test(self, test_idx, base_path, in_mem, out_mem, cost_mask, regs, timesteps) -> None:
-        # Create a directory for the difficulty
-        difficulty_test_base_path = "%s/%s" % (base_path, test_idx)
-        create_dir(difficulty_test_base_path, True)
+    def execute_test_sample(self, context, s, test_idx, base_path, difficulty_test_base_path,
+                              in_mem, out_mem, cost_mask, regs, timesteps):
+        if context.print_memories or context.print_circuits is not 0:
+            sample_difficulty_base_path = "%s/%s" % (difficulty_test_base_path, s)
+            create_dir(sample_difficulty_base_path, True)
 
-        # Iterate over sample
-        for s in tqdm(range(self.context.batch_size)) if not self.context.info_is_active else range(self.context.batch_size):
-            if self.context.print_memories or self.context.print_circuits is not 0:
-                sample_difficulty_base_path = "%s/%s" % (difficulty_test_base_path, s)
-                create_dir(sample_difficulty_base_path, True)
+        if context.info_is_active:
+            print("\nSample[%d], Initial memory: %s, Desired memory: %s, Initial registers: %s"
+                  % (s, in_mem[:].argmax(axis=1), out_mem, regs[:].argmax(axis=1)))
 
-            if self.context.info_is_active:
-                print("\nSample[%d], Initial memory: %s, Desired memory: %s, Initial registers: %s"
-                    % (s, in_mem[s, :].argmax(axis=1), out_mem[s], regs[s, :].argmax(axis=1)))
+        # Iterate for every timestep
+        debug = list()  # Init debug dictionary for the sample
+        for t in range(timesteps):
+            coeffs, _ = self.__run_network(regs)
 
-            # Iterate for every timestep
-            initial_memory = in_mem[s].argmax(axis=1)
-            self.context.debug.append(list()) # Init debug dictionary for the sample
-            for t in range(timesteps):
-                coeffs, _ = self.__run_network(regs[s])
+            dt = DebugTimestep(context, t, s)
+            regs, in_mem = self.__run_circuit(regs, in_mem, context.gates, coeffs, dt)
+            debug.append(dt)
 
-                dt = DebugTimestep(self.context, t, s)
-                regs[s], in_mem[s] = self.__run_circuit(regs[s], in_mem[s], self.context.gates, coeffs, dt)
-                self.context.debug[s].append(dt)
+        # Debug for the sample
+        if context.info_is_active:
+            for dt in debug:
+                print(dt)
+            print("\t• Expected mem => %s" % out_mem)
 
-            # Debug for the sample
-            if self.context.info_is_active:
-                for dt in self.context.debug[s]:
-                    print(dt)
-                print("\t• Expected mem => %s" % out_mem[s])
+        if context.print_memories:
+            with open("%s/memories.txt" % sample_difficulty_base_path, "a+") as f:
+                f.write("\\textbf{Step} & %s & %s \\\\ \hline \n"
+                        % (" & ".join(["%s" % r for r in range(out_mem.shape[0])]),
+                           " & ".join(["\\textit{r}%d" % r for r in range(context.num_regs)])))
+            for dt in debug:
+                dt.print_memory_to_file(sample_difficulty_base_path, timesteps)
 
-            if self.context.print_memories:
-                with open("%s/memories.txt" % sample_difficulty_base_path, "a+") as f:
-                    f.write("\\textbf{Step} & %s & %s \\\\ \hline \n"
-                            % (" & ".join(["%s" % r for r in range(out_mem.shape[1])]),
-                               " & ".join(["\\textit{r}%d" % r for r in range(self.context.num_regs)])))
-                for dt in self.context.debug[s]:
-                    dt.print_memory_to_file(sample_difficulty_base_path, timesteps)
-
-            if self.context.print_circuits is not 0:
-                # Create dir for the single example of a difficulty
-                for dt in self.context.debug[s]:
-                    if self.context.print_circuits is 1:
-                        dt.print_circuit(sample_difficulty_base_path)
-                    else:
-                        dt.print_pruned_circuit(sample_difficulty_base_path)
-
-        print_memories(self.context, in_mem, out_mem, cost_mask, difficulty_test_base_path, test_idx)
-
+        if context.print_circuits is not 0:
+            # Create dir for the single example of a difficulty
+            for dt in debug:
+                if context.print_circuits is 1:
+                    dt.print_circuit(sample_difficulty_base_path)
+                else:
+                    dt.print_pruned_circuit(sample_difficulty_base_path)
 
     def __avg(self, regs: np.array, coeff: np.array) -> np.array:
         """ Make the product between (registers + output of the gates)

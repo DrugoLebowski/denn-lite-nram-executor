@@ -58,6 +58,12 @@ if __name__ == "__main__":
                     const=True,
                     default=False,
                     help="For each sample and for each step, write to file the memory and the registers.", )
+    ap.add_argument("--process_pool",
+                    "-pp",
+                    dest="process_pool",
+                    type=int,
+                    default=1,
+                    help="Set how many threads should be used for the tests.")
 
     args, leftovers = ap.parse_known_args()
 
@@ -76,4 +82,5 @@ if __name__ == "__main__":
         print_circuits=args.print_circuits,
         print_memories=args.print_memories,
         path_config_file=os.path.abspath(args.file),
+        process_pool=args.process_pool
     )).execute()

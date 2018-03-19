@@ -22,11 +22,10 @@ class TaskSwap(Task):
         init_mem[:, 0] = idx_1
         init_mem[:, 1] = idx_2
 
+        error_mask = np.ones((self.batch_size, self.max_int), dtype=np.int8)
         out_mem = init_mem.copy()
         for i in range(self.batch_size):
             out_mem[i, idx_1[i]], out_mem[i, idx_2[i]] = np.copy(out_mem[i, idx_2[i]]), np.copy(out_mem[i, idx_1[i]])
+            error_mask[i, idx_1[i]], out_mem[i, idx_2[i]] = 1, 1
 
-        cost_mask = np.ones((self.batch_size, self.max_int), dtype=np.int8)
-        cost_mask[:, 0:2] = 0
-
-        return init_mem, out_mem, cost_mask
+        return init_mem, out_mem, error_mask

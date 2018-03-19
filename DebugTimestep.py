@@ -135,16 +135,20 @@ class DebugTimestep(object):
         with open("%s/memories.txt" % path, "a+") as f:
             timestep_regs = [reg[1] for idx, reg in self.regs.items()]
             if t + 1 < max_timestep:
-                f.write("%d & %s & %s \\\\ \n"
+                f.write("%d & %s & %s & p:%s & p:%s v:%s \\\\ \n"
                         % (t + 1,
                            " & ".join(["%d" % v for v in self.mem_previous_mod]),
-                           " & ".join(["%d" % r for r in timestep_regs])))
+                           " & ".join(["%d" % r for r in timestep_regs]),
+                           self.gates["Read"]['0'][1],
+                           self.gates["Write"]['0'][1], self.gates["Write"]['1'][1]))
             else:
-                f.write("%d & %s & %s \\\\ \hline \n"
-                        % (t + 1,
-                           " & ".join(["%d" % v for v in self.mem_previous_mod]),
-                           " & ".join(["%d" % r for r in timestep_regs])))
-                f.write("\\rowcolor{Gray}Final & %s & %s \\\\"
+                f.write("%d & %s & %s & p:%s & p:%s v:%s\\\\ \hline \n"
+                        % ( t + 1,
+                            " & ".join(["%d" % v for v in self.mem_previous_mod]),
+                            " & ".join(["%d" % r for r in timestep_regs]),
+                            self.gates["Read"]['0'][1],
+                            self.gates["Write"]['0'][1], self.gates["Write"]['1'][1]))
+                f.write("\\rowcolor{Gray}Final & %s & %s & $\\times$ & $\\times$ \\\\"
                         % (" & ".join(["%d" % v for v in self.mem]),
                            " & ".join(["%d" % r for r in timestep_regs])))
 

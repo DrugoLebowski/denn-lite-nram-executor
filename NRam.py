@@ -46,10 +46,11 @@ class NRam(object):
                 futures = [executor.submit(self.execute_test_sample, self.context, s,difficulty_test_base_path,
                                            in_mem[s], out_mem[s], regs[s], timesteps)
                            for s in range(self.context.batch_size)]
-                if not self.context.info_is_active:
-                    for f in tqdm(concurrent.futures.as_completed(futures), total=self.context.batch_size):
-                        s, modified_in_mem = f.result()
-                        in_mem[s] = modified_in_mem
+
+                for f in tqdm(concurrent.futures.as_completed(futures), total=self.context.batch_size) \
+                        if not self.context.info_is_active else concurrent.futures.as_completed(futures):
+                    s, modified_in_mem = f.result()
+                    in_mem[s] = modified_in_mem
                 print_memories(in_mem, out_mem, cost_mask, difficulty_test_base_path, test_idx)
         print("• Execution terminated")
 
@@ -79,7 +80,7 @@ class NRam(object):
 
         if context.print_memories:
             with open("%s/memories.txt" % sample_difficulty_base_path, "a+") as f:
-                f.write("\\textbf{Step} & %s & %s \\\\ \hline \n"
+                f.write("\\textbf{Step} & %s & %s & Read & Write \\\\ \hline \n"
                         % (" & ".join(["%s" % r for r in range(out_mem.shape[0])]),
                            " & ".join(["\\textit{r}%d" % r for r in range(context.num_regs)])))
             for dt in debug:

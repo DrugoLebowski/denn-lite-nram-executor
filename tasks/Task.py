@@ -14,10 +14,10 @@ class Task(object):
         self.timesteps = timestep
 
     def __call__(self, *args, **kwargs):
-        in_mem, out_mem, cost_mask = self.create()
+        in_mem, out_mem, error_mask = self.create()
         return encode(in_mem), \
                out_mem, \
-               cost_mask, \
+               error_mask, \
                self.init_regs(np.zeros((self.batch_size, self.num_regs, self.max_int), dtype=np.float64)), \
                self.timesteps
 

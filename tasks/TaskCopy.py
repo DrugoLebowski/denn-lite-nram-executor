@@ -24,7 +24,8 @@ class TaskCopy(Task):
         out_mem = init_mem.copy()
         out_mem[:, starting_point:starting_point + vector_size] = np.copy(out_mem[:, 1:1 + vector_size])
 
-        cost_mask = np.ones((self.batch_size, self.max_int), dtype=np.int8)
-        cost_mask[:, 0:starting_point] = np.zeros((self.batch_size, starting_point))
+        error_mask = np.ones((self.batch_size, self.max_int), dtype=np.int8)
+        error_mask[:, 0:starting_point] = np.zeros((self.batch_size, starting_point))
+        error_mask[:, -1] = np.zeros((self.batch_size))
 
-        return init_mem, out_mem, cost_mask
+        return init_mem, out_mem, error_mask

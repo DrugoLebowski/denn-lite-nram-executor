@@ -20,4 +20,7 @@ class TaskAccess(Task):
         for sample, idx in enumerate(init_mem[:, 0]):
             out_mem[sample, 0] = init_mem[sample, idx]
 
-        return init_mem, out_mem, np.ones((self.batch_size, self.max_int), dtype=np.int8)
+        error_mask = np.zeros((self.batch_size, self.max_int), dtype=np.int8)
+        error_mask[:, 0] = 1
+
+        return init_mem, out_mem, error_mask

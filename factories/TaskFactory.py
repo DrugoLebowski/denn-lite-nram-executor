@@ -17,18 +17,18 @@ from tasks.TaskProduct import TaskProduct
 class TaskFactory(metaclass=Singleton):
 
     @staticmethod
-    def create(name: str, batch_size: int, max_int: int, num_regs: int, timestep: int) -> Task:
+    def create(name: str, batch_size: int, max_int: int, num_regs: int, timestep: int, sequence_size: int) -> Task:
         return {
-            "task_copy": TaskCopy(batch_size, max_int, num_regs, timestep),
-            "task_access": TaskAccess(batch_size, max_int, num_regs, timestep),
-            "task_increment": TaskIncrement(batch_size, max_int, num_regs, timestep),
-            "task_swap": TaskSwap(batch_size, max_int, num_regs, timestep),
-            "task_reverse": TaskReverse(batch_size, max_int, num_regs, timestep),
-            "task_permutation": TaskPermutation(batch_size, max_int, num_regs, timestep),
-            "task_list_k": TaskListK(batch_size, max_int, num_regs, timestep),
-            "task_list_search": TaskListSearch(batch_size, max_int, num_regs, timestep),
-            "task_merge": TaskMerge(batch_size, max_int, num_regs, timestep),
-            "task_walkbst": TaskWalkBST(batch_size, max_int, num_regs, timestep),
-            "task_sum": TaskSum(batch_size, max_int, num_regs, timestep),
-            "task_product": TaskProduct(batch_size, max_int, num_regs, timestep),
+            "task_copy": TaskCopy(batch_size, max_int, num_regs, timestep, sequence_size),
+            "task_access": TaskAccess(batch_size, max_int, num_regs, timestep, sequence_size),
+            "task_increment": TaskIncrement(batch_size, max_int, num_regs, timestep, sequence_size),
+            "task_swap": TaskSwap(batch_size, max_int, num_regs, timestep, sequence_size),
+            "task_reverse": TaskReverse(batch_size, max_int, num_regs, timestep, sequence_size),
+            "task_permutation": TaskPermutation(batch_size, max_int, num_regs, timestep, sequence_size),
+            "task_list_k": TaskListK(batch_size, max_int, num_regs, timestep, sequence_size),
+            "task_list_search": TaskListSearch(batch_size, max_int, num_regs, timestep, sequence_size),
+            "task_merge": TaskMerge(batch_size, max_int, num_regs, timestep, sequence_size),
+            "task_walkbst": TaskWalkBST(batch_size, max_int, num_regs, timestep, sequence_size),
+            "task_sum": TaskSum(batch_size, max_int, num_regs, timestep, sequence_size),
+            "task_product": TaskProduct(batch_size, max_int, num_regs, timestep, sequence_size),
         }[name]

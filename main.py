@@ -36,6 +36,12 @@ if __name__ == "__main__":
                     type=int,
                     required=True,
                     help="The dimensions of the sets of numbers", )
+    ap.add_argument("--sequence_size", "-ss",
+                    dest="sequence_size",
+                    nargs="+",
+                    type=int,
+                    required=True,
+                    help="The size of the input sequence.", )
     ap.add_argument("--info", "-i",
                     dest="info",
                     nargs="?",
@@ -64,6 +70,13 @@ if __name__ == "__main__":
                     type=int,
                     default=1,
                     help="Set how many threads should be used for the tests.")
+    ap.add_argument("--stop_at_the_will",
+                    "-satw",
+                    dest="stop_at_the_will",
+                    nargs='?',
+                    const=True,
+                    default=False,
+                    help="Activate the stop for the will of the NRAM.")
 
     args, leftovers = ap.parse_known_args()
 
@@ -74,6 +87,7 @@ if __name__ == "__main__":
     NRam(NRamContext(
         batch_size=args.batch_size,
         l_max_int=args.max_ints,
+        l_sequence_size=args.sequence_size,
         l_timesteps=args.timesteps,
         task_type="task_%s" % test_args["task"],
         network=test["network"],
@@ -82,5 +96,6 @@ if __name__ == "__main__":
         print_circuits=args.print_circuits,
         print_memories=args.print_memories,
         path_config_file=os.path.abspath(args.file),
-        process_pool=args.process_pool
+        process_pool=args.process_pool,
+        stop_at_the_will=args.stop_at_the_will
     )).execute()

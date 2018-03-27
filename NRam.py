@@ -66,11 +66,14 @@ class NRam(object):
         # Iterate for every timestep
         debug = list()  # Init debug dictionary for the sample
         for t in range(timesteps):
-            coeffs, _ = self.__run_network(regs)
+            coeffs, complete = self.__run_network(regs)
 
             dt = DebugTimestep(context, t, s)
             regs, in_mem = self.__run_circuit(regs, in_mem, context.gates, coeffs, dt)
             debug.append(dt)
+
+            if self.context.stop_at_the_will and complete.sum() >= 1.0:
+                break
 
         # Debug for the sample
         if context.info_is_active:
@@ -96,14 +99,18 @@ class NRam(object):
 
         return s, in_mem
 
-    def __avg(self, regs: np.array, coeff: np.array) -> np.array:
+    def avg(self, regs: np.array, coeff: np.array) -> np.array:
         """ Make the product between (registers + output of the gates)
             and a coefficient for the value selection """
-        return np.array(
+        value =  np.array(
             np.tensordot(
-                regs.transpose([1, 0]), coeff.transpose([1, 0]), axes=1
+                regs.transpose([1, 0]),
+                coeff.transpose([1, 0]),
+                axes=1
             ).transpose([1, 0]),
-            dtype=np.float64)
+            dtype=np.float32
+        )
+        return value
 
     def __run_gate(self, gate_inputs, mem, gate, controller_coefficients):
         """Return the output of a gate in the circuit.
@@ -117,7 +124,7 @@ class NRam(object):
           A list of coefficient arrays from the controller,
           one coefficient for every gate input (0 for constants).
         """
-        args = [self.__avg(gate_inputs, coefficients)
+        args = [self.avg(gate_inputs, coefficients)
                 for coefficients in controller_coefficients]
         mem, output = gate(mem, *args)
 
@@ -142,6 +149,7 @@ class NRam(object):
 
         debug.mem_previous_mod = mem.argmax(axis=1)
         # Run through all the gates.
+        ptr = 0
         for i, (gate, coeffs) in enumerate(zip(gates, controller_coefficients)):
             output, mem, args = self.__run_gate(gate_inputs, mem, gate, coeffs)
 
@@ -158,7 +166,7 @@ class NRam(object):
 
         # All leftover coefficients are for registers.
         for i, coeff in enumerate(controller_coefficients[len(gates):]):
-            gate_inputs[i] = self.__avg(gate_inputs, coeff)
+            gate_inputs[i] = self.avg(gate_inputs, coeff)
             debug_step_regs[str(i)] = [coeff.argmax(), gate_inputs[i].argmax()]
         debug.regs = debug_step_regs
 
@@ -172,31 +180,31 @@ class NRam(object):
             return values[i], values[i + 1], i + 2
 
         # Extract the 0th (i.e. P( x = 0 )) component from all registers.
-        last_layer = np.array(registers[:, 0][None, ...], dtype=np.float64)
+        last_hidden_layer = np.array(registers[:, 0][None, ...], dtype=np.float32)
 
         # Propogate forward to hidden layers.
         idx = 0
         for i in range(self.context.num_hidden_layers):
             W, b, idx = take_params(self.context.network, idx)
-            last_layer = relu(last_layer.dot(W) + b)
+            last_hidden_layer = relu(last_hidden_layer.dot(W) + b)
 
         controller_coefficients = []
         for i, gate in enumerate(self.context.gates):
             coeffs = []
             for j in range(gate.arity):
                 W, b, idx = take_params(self.context.network, idx)
-                layer = softmax(last_layer.dot(W) + b)
-                coeffs.append(layer)
+                coeff = softmax(last_hidden_layer.dot(W) + b)
+                coeffs.append(coeff)
             controller_coefficients.append(coeffs)
 
         # Forward propogate to new register value coefficients.
         for i in range(self.context.num_regs):
             W, b, idx = take_params(self.context.network, idx)
-            coeffs = softmax(last_layer.dot(W) + b)
-            controller_coefficients.append(coeffs)
+            coeff = softmax(last_hidden_layer.dot(W) + b)
+            controller_coefficients.append(coeff)
 
         # Forward propogate to generate willingness to complete.
         W, b, idx = take_params(self.context.network, idx)
-        complete = sigmoid(last_layer.dot(W) + b)
+        complete = sigmoid(last_hidden_layer.dot(W) + b)
 
         return controller_coefficients, complete

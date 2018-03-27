@@ -12,12 +12,12 @@ import numpy as np
 def to_one_hot(val, shape: int = None) -> np.ndarray:
 
     def to_one_hot_array(val: np.ndarray) -> np.ndarray:
-        b = np.zeros((val.shape[0], val.shape[0]), dtype=np.float64)
+        b = np.zeros((val.shape[0], val.shape[0]), dtype=np.float32)
         b[np.arange(val.shape[0]), val] = 1
         return b
 
     def to_one_hot_number(val: int, shape: int) -> np.ndarray:
-        b = np.zeros((shape), dtype=np.float64)
+        b = np.zeros((shape), dtype=np.float32)
         b[val] = 1
         return b
 
@@ -69,7 +69,7 @@ def print_memories(M: np.ndarray, desired_mem: np.ndarray, cost_mask: np.ndarray
     plt.savefig("%s/%d.memories.grey.png" % (path, test_idx))
 
     differences_mem = np.zeros(
-        (desired_mem.shape[0], desired_mem.shape[1]), dtype=np.float64)
+        (desired_mem.shape[0], desired_mem.shape[1]), dtype=np.float32)
     for s in range(desired_mem.shape[0]):
         for c in range(desired_mem.shape[1]):
             differences_mem[s, c] = M[s, c, desired_mem[s, c]]

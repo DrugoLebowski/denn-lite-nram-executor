@@ -16,22 +16,21 @@ class TaskPermutation(Task):
 
     def create(self) -> (np.ndarray, np.ndarray, np.ndarray):
         pointer = int(np.ceil(self.max_int / 2) if self.max_int % 2 != 0 else self.max_int / 2)
-        elements_of_A = int(pointer - 1)
 
         init_mem = np.zeros((self.batch_size, self.max_int), dtype=np.int32)
         init_mem[:, 0] = pointer
         for idx in range(self.batch_size):
-            init_mem[idx, 1:pointer] = np.random.permutation(elements_of_A)
-        init_mem[:, pointer:(pointer + elements_of_A)] = \
-            np.random.randint(1, self.max_int, size=(self.batch_size, elements_of_A), dtype=np.int32)
+            init_mem[idx, 1:(1 + self.sequence_size)] = np.random.permutation(self.sequence_size)
+        init_mem[:, pointer:(pointer + self.sequence_size)] = \
+            np.random.randint(1, self.max_int, size=(self.batch_size, self.sequence_size), dtype=np.int32)
 
         out_mem = init_mem.copy()
-        permutations = encode(out_mem[:, 1:pointer])
+        permutations = encode(out_mem[:, 1:(1 + self.sequence_size)])
         for idx in range(self.batch_size):
-            out_mem[idx, 1:pointer] = np.tensordot(out_mem[idx, pointer:(pointer + elements_of_A)],
+            out_mem[idx, 1:(1 + self.sequence_size)] = np.tensordot(out_mem[idx, pointer:(pointer + self.sequence_size)],
                                                    permutations[idx], axes=(0, 1))
 
         cost_mask = np.zeros((self.batch_size, self.max_int), dtype=np.int8)
-        cost_mask[:, 1:pointer] = 1
+        cost_mask[:, 1:(1 + self.sequence_size)] = 1
 
         return init_mem, out_mem, cost_mask

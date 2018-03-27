@@ -7,9 +7,10 @@ from util import encode
 class Task(object):
     """ Base class for all task of NRAM """
 
-    def __init__(self, batch_size: int, max_int: int, num_regs: int, timestep: int) -> None:
+    def __init__(self, batch_size: int, max_int: int, num_regs: int, timestep: int, sequence_size: int) -> None:
         self.batch_size = batch_size
         self.max_int = max_int
+        self.sequence_size = sequence_size
         self.num_regs = num_regs
         self.timesteps = timestep
 
@@ -18,7 +19,7 @@ class Task(object):
         return encode(in_mem), \
                out_mem, \
                error_mask, \
-               self.init_regs(np.zeros((self.batch_size, self.num_regs, self.max_int), dtype=np.float64)), \
+               self.init_regs(np.zeros((self.batch_size, self.num_regs, self.max_int), dtype=np.float32)), \
                self.timesteps
 
     def __str__(self):

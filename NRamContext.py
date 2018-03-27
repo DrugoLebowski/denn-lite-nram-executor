@@ -9,6 +9,7 @@ class NRamContext(object):
     def __init__(self,
                  batch_size:        int,
                  l_max_int:         list,
+                 l_sequence_size:   list,
                  l_timesteps:       list,
                  task_type:         str,
                  gates:             list,
@@ -17,7 +18,8 @@ class NRamContext(object):
                  print_memories:    bool,
                  path_config_file:  str,
                  info_is_active:    bool,
-                 process_pool:      int) -> None:
+                 process_pool:      int,
+                 stop_at_the_will:  bool) -> None:
         self.gates = gates
         self.num_regs = len(network[0][0])
         self.num_hidden_layers = len(network[0:len(network) - 1])
@@ -25,11 +27,12 @@ class NRamContext(object):
 
         self.batch_size = batch_size
         self.l_max_int = l_max_int
+        self.l_sequence_size = l_sequence_size
         self.l_timesteps = l_timesteps
         self.tasks = list()
-        for max_int, timesteps in zip(self.l_max_int, self.l_timesteps):
+        for max_int, sequence_size, timesteps in zip(self.l_max_int, self.l_sequence_size, self.l_timesteps):
             self.tasks.append(
-                TaskFactory.create(task_type, self.batch_size, max_int, self.num_regs, timesteps))
+                TaskFactory.create(task_type, self.batch_size, max_int, self.num_regs, timesteps, sequence_size))
 
         # Every entry of the debug list is associated to a sample
         self.info_is_active = info_is_active
@@ -43,18 +46,20 @@ class NRamContext(object):
 
         self.process_pool = process_pool
 
+        self.stop_at_the_will = stop_at_the_will
+
     def mlp_params(self, network: list, gates_list: list) -> list:
         # Hidden layers (Not output)
         layers = []
         for idx, l in enumerate(network[:-1]):
-            layers.append(np.array(l[0], dtype=np.float64))  # Weights
-            layers.append(np.array(l[1], dtype=np.float64))  # Bias
+            layers.append(np.array(l[0], dtype=np.float32))  # Weights
+            layers.append(np.array(l[1], dtype=np.float32))  # Bias
 
         # Output layers (for every gate coefficient)
         ptr = 0
         output_layer = network[-1]
-        output_layer_weights = np.array(output_layer[0], dtype=np.float64)
-        output_layer_bias = np.array(output_layer[1], dtype=np.float64)
+        output_layer_weights = np.array(output_layer[0], dtype=np.float32)
+        output_layer_bias = np.array(output_layer[1], dtype=np.float32)
         num_registers = self.num_regs
         for idx, g in enumerate(gates_list):
             for _ in range(g.arity):
@@ -70,7 +75,7 @@ class NRamContext(object):
             ptr += num_registers
 
         # Output layer for the willingness of finish f_t
-        layers.append(output_layer_weights[:, -1])
-        layers.append(output_layer_bias[:, -1])
+        layers.append(output_layer_weights[:, ptr:ptr + 1])
+        layers.append(output_layer_bias[:, ptr:ptr + 1])
 
         return layers

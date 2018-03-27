@@ -17,8 +17,8 @@ class DebugTimestep(object):
         self.sample = sample
         self.__gates = dict()
         self.__regs = dict()
-        self.__mem = np.array([], dtype=np.float64)
-        self.__mem_previous_mod = np.array([], dtype=np.float64)
+        self.__mem = np.array([], dtype=np.float32)
+        self.__mem_previous_mod = np.array([], dtype=np.float32)
 
     @property
     def gates(self) -> dict():
@@ -106,7 +106,9 @@ class DebugTimestep(object):
                     G.add_edge(coeff, g.__str__())
                     if g.__str__() is "Write":
                         G.get_edge(coeff, g.__str__()).attr["label"] = "ptr" if a is 0 else "val"
-                    elif g.__str__() in ["LessThan", "LessThanEqual", "EqualThan", "Min", "Max"]:
+                    elif g.__str__() is "Read":
+                        G.get_edge(coeff, g.__str__()).attr["label"] = "ptr"
+                    elif g.__str__() in ["Add", "Sub", "LessThan", "LessEqualThan", "EqualThan", "Min", "Max"]:
                         G.get_edge(coeff, g.__str__()).attr["label"] = "x" if a is 0 else "y"
 
         for r in range(context.num_regs):

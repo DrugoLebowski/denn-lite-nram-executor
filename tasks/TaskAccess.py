@@ -12,6 +12,8 @@ class TaskAccess(Task):
     """
 
     def create(self) -> (np.ndarray, np.ndarray, np.ndarray):
+        if self.sequence_size + 2 != self.max_int:
+            raise Exception("Incompatible size of Max Int and input sequence.")
         init_mem = np.random.randint(0, self.max_int, size=(self.batch_size, self.max_int), dtype=np.int32)
         init_mem[:, 0] = np.random.randint(1, self.max_int - 1, size=(self.batch_size), dtype=np.int32)
         init_mem[:, self.max_int - 1] = 0

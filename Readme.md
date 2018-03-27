@@ -65,12 +65,32 @@ OR
 $ python main.py tests/example.py -mi 10 [...]
 ```
 
-#### --print_circuits
-Activate for each sample the saving to an image file of the circuit of the timesteps.
+#### --print_circuits [1 | 2]
+With **1** activate the complete printing of the circuits and with **2** activate the pruned printing of the circuits.
 ```sh
-$ python main.py tests/example.py --print_circuits
+$ python main.py tests/example.py --print_circuits 2
 
 OR
 
-$ python main.py tests/example.py -pc
+$ python main.py tests/example.py -pc 2
+```
+
+#### --print_memories
+Activate the printing of the memories status in TeX format.
+```sh
+$ python main.py tests/example.py --print_circuits 2
+
+OR
+
+$ python main.py tests/example.py -pc 2
+```
+
+#### --process_pool [1|2|3|4|...]
+The number of process to spawn when the NRAM compute the samples.
+```sh
+$ python main.py tests/example.py --process_pool 8
+
+OR
+
+$ python main.py tests/example.py -pp 8
 ```

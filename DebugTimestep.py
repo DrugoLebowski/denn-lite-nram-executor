@@ -17,8 +17,10 @@ class DebugTimestep(object):
         self.sample = sample
         self.__gates = dict()
         self.__regs = dict()
+        self.__regs_previous_mod = dict()
         self.__mem = np.array([], dtype=np.float32)
         self.__mem_previous_mod = np.array([], dtype=np.float32)
+        self.__fi = 0
 
     @property
     def gates(self) -> dict():
@@ -29,7 +31,7 @@ class DebugTimestep(object):
         self.__gates = gates
 
     @property
-    def regs(self) -> dict():
+    def regs(self) -> dict:
         return self.__regs
 
     @regs.setter
@@ -37,7 +39,7 @@ class DebugTimestep(object):
         self.__regs = regs
 
     @property
-    def mem(self) -> np.array:
+    def mem(self) -> np.ndarray:
         return self.__mem
 
     @mem.setter
@@ -45,13 +47,28 @@ class DebugTimestep(object):
         self.__mem = mem
 
     @property
-    def mem_previous_mod(self) -> np.array:
+    def mem_previous_mod(self) -> np.ndarray:
         return self.__mem_previous_mod
 
     @mem_previous_mod.setter
     def mem_previous_mod(self, mem: dict) -> None:
         self.__mem_previous_mod = mem
 
+    @property
+    def regs_previous_mod(self) -> dict:
+        return self.__regs_previous_mod
+
+    @regs_previous_mod.setter
+    def regs_previous_mod(self, regs: dict) -> None:
+        self.__regs_previous_mod = regs
+
+    @property
+    def fi(self) -> float:
+        return self.__fi
+
+    @fi.setter
+    def fi(self, fi):
+        self.__fi = fi
 
     def __retrieve_gates_or_register(self, idx: int) -> str:
         """Retrieve the right name for a coefficient (i.e. if it is a Register or a Gate)"""
@@ -136,6 +153,7 @@ class DebugTimestep(object):
         t = self.timestep
         with open("%s/memories.txt" % path, "a+") as f:
             timestep_regs = [reg[1] for idx, reg in self.regs.items()]
+            timestep_regs_previous_mod = [reg[1] for idx, reg in self.regs_previous_mod.items()]
             if t + 1 < max_timestep:
                 f.write("%d & %s & %s & p:%s & p:%s v:%s \\\\ \n"
                         % (t + 1,
@@ -173,5 +191,6 @@ class DebugTimestep(object):
         for r in range(self.context.num_regs):
             output += "\t• R%d' (%s) => %d\n" % (r, register_or_gates(1, self.regs[str(r)][0]), self.regs[str(r)][1])
 
+        output += "\t• Fi => %s\n" % self.fi
         output += "\t• Mem => %s" % self.mem
         return output

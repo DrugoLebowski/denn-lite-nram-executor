@@ -66,9 +66,8 @@ class NRam(object):
         # Iterate for every timestep
         debug = list()  # Init debug dictionary for the sample
         for t in range(timesteps):
-            coeffs, complete = self.__run_network(regs)
-
             dt = DebugTimestep(context, t, s)
+            coeffs, complete = self.__run_network(regs, dt)
             regs, in_mem = self.__run_circuit(regs, in_mem, context.gates, coeffs, dt)
             debug.append(dt)
 
@@ -146,6 +145,7 @@ class NRam(object):
         # Debug purpose, dictionary for gates and regs history
         debug_step_gates = dict()
         debug_step_regs  = dict()
+        debug_previous_mod_regs = dict()
 
         debug.mem_previous_mod = mem.argmax(axis=1)
         # Run through all the gates.
@@ -166,13 +166,15 @@ class NRam(object):
 
         # All leftover coefficients are for registers.
         for i, coeff in enumerate(controller_coefficients[len(gates):]):
+            debug_previous_mod_regs[str(i)] = [coeff.argmax(), gate_inputs[i].argmax()]
             gate_inputs[i] = self.avg(gate_inputs, coeff)
             debug_step_regs[str(i)] = [coeff.argmax(), gate_inputs[i].argmax()]
+        debug.regs_previous_mod = debug_previous_mod_regs
         debug.regs = debug_step_regs
 
         return gate_inputs[np.arange(self.context.num_regs)], mem
 
-    def __run_network(self, registers: np.array) -> np.array:
+    def __run_network(self, registers: np.array, debug: dict = None) -> np.array:
 
         def take_params(values, i):
             """Return the next pair of weights and biases after the
@@ -206,5 +208,8 @@ class NRam(object):
         # Forward propogate to generate willingness to complete.
         W, b, idx = take_params(self.context.network, idx)
         complete = sigmoid(last_hidden_layer.dot(W) + b)
+
+        if debug is not None:
+            debug.fi = np.around(complete.sum(), 3)
 
         return controller_coefficients, complete

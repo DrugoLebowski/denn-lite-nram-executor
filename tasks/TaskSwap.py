@@ -26,6 +26,6 @@ class TaskSwap(Task):
         out_mem = init_mem.copy()
         for i in range(self.batch_size):
             out_mem[i, idx_1[i]], out_mem[i, idx_2[i]] = np.copy(out_mem[i, idx_2[i]]), np.copy(out_mem[i, idx_1[i]])
-            error_mask[i, idx_1[i]], out_mem[i, idx_2[i]] = 1, 1
+            error_mask[i, idx_1[i]], error_mask[i, idx_2[i]] = 1, 1
 
         return init_mem, out_mem, error_mask
